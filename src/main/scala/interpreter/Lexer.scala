@@ -1,22 +1,24 @@
 package main.scala.interpreter
 
+import scala.annotation.Annotation
 import main.scala.core._
 
 case class Lexer (rawCode: String){
   private var currentLine = 0
-  private var currentCol = 0
   private var code = rawCode
   private var currentPos = 0
   
-  private def getProp = MetaData(currentLine, currentCol)
+  private def getProp = MetaData(currentLine/2, currentPos)
   private def nowChar = code.charAt(currentPos)
   private def moveChar = {currentPos = currentPos + 1}
   
   /**
-   * returns a list of tokens, uses deterministic finite automata method
+   * `WARNING` the tokens are not guaranteed to be valid, such as the parentheses number may be wrong
+   * @return a list of tokens, uses deterministic finite automata method
    */
   def getTokens(): List[Token] = {
     import dfaState._
+    @annotation.tailrec
     def getTail(state: dfaState, l: List[Token]): List[Token] = state match {
       case START => nowChar match {
         case '(' => {moveChar;getTail(START, l:+Token(LPAREN, "(", getProp))}
@@ -27,8 +29,8 @@ case class Lexer (rawCode: String){
         case '+' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "+", getProp))}
         case '-' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "-", getProp))}
         case '=' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "=", getProp))}
-        case '>' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "=", getProp))}
-        case '<' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "=", getProp))}
+        case '>' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, ">", getProp))}
+        case '<' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "<", getProp))}
         case '≥' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≥", getProp))}
         case '≤' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≤", getProp))}
         case '≡' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≡", getProp))}
@@ -36,9 +38,15 @@ case class Lexer (rawCode: String){
         case '≠' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "¬", getProp))}
         case '↔' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "↔", getProp))}
         case '⊢' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "⊢", getProp))}
+        case '■' => {getTail(END, l)}
         case _ => {
+          //DEBUG
+          println(s"$nowChar")
           //space
-          if(nowChar.isSpaceChar) {moveChar;getTail(START, l)}
+          if(nowChar.isSpaceChar) {
+            //if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
+            moveChar;getTail(START, l)
+          }
           //integer or double
           else if (nowChar.isDigit) {
             currentPos = currentPos - 1
@@ -51,7 +59,10 @@ case class Lexer (rawCode: String){
             getTail(START, l:+Token(IDENTIFIER, getIdentifier, getProp))
           }
           //other charaters
-          else {moveChar;getTail(END, l)}
+          else {
+            if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
+            moveChar;getTail(START, l)
+          }
         }
       }
       
@@ -69,17 +80,28 @@ case class Lexer (rawCode: String){
     getTail(START, List())
   }
   
-  private def getIdentifier = {
+  /**
+   * `IMPORTANT`: this function has side effect
+   * @return the identifier string if applicable
+   */
+  private def getIdentifier: String = {
+    @annotation.tailrec
     def getTail(n: String): String = {
       moveChar
-      if(!nowChar.isSpaceChar) {n++nowChar.toString()}
+      if(!nowChar.isSpaceChar) {getTail(n++nowChar.toString())}
       else n
     }
     getTail("")
   }
   
+  /**
+   * `IMPORTANT`: this function has side effect
+   * `WARNING`: this function does not check if the number is valid or not
+   * @return Tuple2[Boolean, String], the first is false if is integer, the second is the string representation
+   */
   private def getNumber = {
     var isDouble = false
+    @annotation.tailrec
     def getTail(n: String): String = {
       moveChar
       if(nowChar.isDigit) {getTail(n++nowChar.toString())} 
@@ -91,17 +113,36 @@ case class Lexer (rawCode: String){
   }
   
   /**
-   * side effect of changing the `currentPos` variable
+   * `IMPORTANT`: side effect of changing the `currentPos` and `currentLine` variable
    */
   private def cleanLine = {
+    @annotation.tailrec
     def cleanTail(): Unit = if(!inList(nowChar, endLineChar)) {moveChar;cleanTail()}
     cleanTail()
+    currentLine = currentLine + 1
   }
   
+  /**
+   * `IMPORTANT`: side effect of changing the `currentPos` and `currentLine` variable
+   */
   private def cleanBlock = {
-    currentPos = code.substring(currentPos).indexOf("*/") + 2
+    moveChar
+    @annotation.tailrec
+    def get(): Unit = {
+      if(nowChar == '*' && code.charAt(currentPos + 1) == '/') {
+        moveChar; moveChar
+      } else {
+        if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
+        moveChar; get()
+      }
+    }
+    get()
   }
   
+  /**
+   * some higher order function, written purely for artistic reason :)
+   * @return check if an element is in a list
+   */
   private def inList [A] (v: A, l: List[A]): Boolean = (false /: (l map (_==v))) (_||_)
   private val endLineChar = List('\r', '\n')
 }
