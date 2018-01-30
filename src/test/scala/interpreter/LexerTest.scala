@@ -5,9 +5,10 @@ import main.scala.interpreter._
 import main.scala.util._
 
 object LexerTest {
+  
   def main(args: Array[String]): Unit = {
     println(config.testCode)
-    beautyPrint(Lexer(config.testCode).getTokens())
+    beautyPrint(config.tokens)
   }
   
   def beautyPrint(l: List[Token]) = {

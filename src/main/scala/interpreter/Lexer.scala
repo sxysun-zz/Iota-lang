@@ -38,10 +38,10 @@ case class Lexer (rawCode: String){
         case '≠' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "¬", getProp))}
         case '↔' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "↔", getProp))}
         case '⊢' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "⊢", getProp))}
-        case '■' => {getTail(END, l)}
+        case '■' => {getTail(END, l:+Token(END, "■", getProp))}
         case _ => {
           //DEBUG
-          println(s"$nowChar")
+          //println(s"$nowChar")
           //space
           if(nowChar.isSpaceChar) {
             //if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
