@@ -24,11 +24,11 @@ case class Lexer (rawCode: String){
         case '(' => {moveChar;getTail(START, l:+Token(LPAREN, "(", getProp))}
         case ')' => {moveChar;getTail(START, l:+Token(RPAREN, ")", getProp))}
         case '/' => {moveChar;getTail(LCOMMENT, l)}
-        case '*' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "*", getProp))}
-        case '%' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "%", getProp))}
-        case '+' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "+", getProp))}
-        case '-' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "-", getProp))}
-        case '=' => {moveChar;getTail(START, l:+Token(BINOPERATOR, "=", getProp))}
+        case '=' => {moveChar;getTail(START, l:+Token(DEFINE, "=", getProp))}
+        case '*' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "*", getProp))}
+        case '%' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "%", getProp))}
+        case '+' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "+", getProp))}
+        case '-' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "-", getProp))}
         case '>' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, ">", getProp))}
         case '<' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "<", getProp))}
         case '≥' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≥", getProp))}
@@ -70,7 +70,7 @@ case class Lexer (rawCode: String){
         case '/' => {cleanLine;getTail(START, l)}
         case '*' => {cleanBlock;getTail(START, l)}
         case _ => {
-          if(nowChar.isSpaceChar) {moveChar;getTail(START, l:+Token(BINOPERATOR, "/", getProp))}
+          if(nowChar.isSpaceChar) {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "/", getProp))}
           else {moveChar;getTail(END, l)}
         }
       }

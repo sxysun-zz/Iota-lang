@@ -2,8 +2,14 @@ package main.scala.core
 
 object dfaState extends Enumeration {
     type dfaState = Value
-    val START, END, STRING, INT, DOUBLE, BOOLEAN, IDENTIFIER, 
-    LPAREN, RPAREN, LCOMMENT, BCOMMENT, BINOPERATOR, SPACE, BOOLOPERATOR = Value
+    val START, END, 
+    SPACE,
+    DEFINE,
+    STRING, INT, DOUBLE, BOOLEAN, IDENTIFIER, LAMBDA,
+    IF,
+    LPAREN, RPAREN, 
+    LCOMMENT, BCOMMENT, 
+    ARITHOPERATOR, BOOLOPERATOR = Value
 }
 
 import dfaState._

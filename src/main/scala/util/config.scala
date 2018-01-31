@@ -3,6 +3,7 @@ package main.scala.util
 object config {
   
   import main.scala.interpreter._
+  import main.scala.core._
   
   val testFileName = "a.aly"
   val testPath = "./"+testFileName
@@ -28,5 +29,9 @@ object config {
   /**
    * evaluator
    */
-  val eval = Evaluator(ast)
+  //val eval = Evaluator(ast)
+  /**
+   * environment default
+   */
+  val env0 = Environment()
 }
