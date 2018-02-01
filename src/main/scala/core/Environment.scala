@@ -3,7 +3,7 @@ package main.scala.core
 /**
  * ``IMPORTANT`` the Scala map behaves like a stack
  */
-case class Environment (table: Environment*) {
+case class Environment () {
   private var m: Map[String, Any] = Map(
       "#f" -> false,
       "#t" -> true,

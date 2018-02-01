@@ -9,7 +9,7 @@ object dfaState extends Enumeration {
     IF,
     LPAREN, RPAREN, 
     LCOMMENT, BCOMMENT, 
-    ARITHOPERATOR, BOOLOPERATOR = Value
+    ARITHOPERATOR, BOOLOPERATOR, COMPOPERATOR, LOGICOPERATOR = Value
 }
 
 import dfaState._

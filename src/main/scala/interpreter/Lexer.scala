@@ -12,75 +12,7 @@ case class Lexer (rawCode: String){
   private def nowChar = code.charAt(currentPos)
   private def moveChar = {currentPos = currentPos + 1}
   
-  /**
-   * `WARNING` the tokens are not guaranteed to be valid, such as the parentheses number may be wrong
-   * @return a list of tokens, uses deterministic finite automata method
-   */
-  def getTokens(): List[Token] = {
-    import dfaState._
-    @annotation.tailrec
-    def getTail(state: dfaState, l: List[Token]): List[Token] = state match {
-      case START => nowChar match {
-        case '(' => {moveChar;getTail(START, l:+Token(LPAREN, "(", getProp))}
-        case ')' => {moveChar;getTail(START, l:+Token(RPAREN, ")", getProp))}
-        case '/' => {moveChar;getTail(LCOMMENT, l)}
-        case '=' => {moveChar;getTail(START, l:+Token(DEFINE, "=", getProp))}
-        case '*' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "*", getProp))}
-        case '%' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "%", getProp))}
-        case '+' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "+", getProp))}
-        case '-' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "-", getProp))}
-        case '>' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, ">", getProp))}
-        case '<' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "<", getProp))}
-        case '≥' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≥", getProp))}
-        case '≤' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≤", getProp))}
-        case '≡' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≡", getProp))}
-        case '¬' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "¬", getProp))}
-        case '≠' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "¬", getProp))}
-        case '↔' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "↔", getProp))}
-        case '⊢' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "⊢", getProp))}
-        case '■' => {getTail(END, l:+Token(END, "■", getProp))}
-        case _ => {
-          //DEBUG
-          //println(s"$nowChar")
-          //space
-          if(nowChar.isSpaceChar) {
-            //if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
-            moveChar;getTail(START, l)
-          }
-          //integer or double
-          else if (nowChar.isDigit) {
-            currentPos = currentPos - 1
-            val t = getNumber
-            if(t._1) getTail(START, l:+Token(DOUBLE, t._2, getProp))
-            else getTail(START, l:+Token(INT, t._2, getProp))}
-          //identifier
-          else if (nowChar.isLetter) {
-            currentPos = currentPos - 1
-            getTail(START, l:+Token(IDENTIFIER, getIdentifier, getProp))
-          }
-          //other charaters
-          else {
-            if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
-            moveChar;getTail(START, l)
-          }
-        }
-      }
-      
-      case LCOMMENT => nowChar match {
-        case '/' => {cleanLine;getTail(START, l)}
-        case '*' => {cleanBlock;getTail(START, l)}
-        case _ => {
-          if(nowChar.isSpaceChar) {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "/", getProp))}
-          else {moveChar;getTail(END, l)}
-        }
-      }
-      
-      case _ => l
-    }
-    getTail(START, List())
-  }
-  
-  /**
+    /**
    * `IMPORTANT`: this function has side effect
    * @return the identifier string if applicable
    */
@@ -145,4 +77,90 @@ case class Lexer (rawCode: String){
    */
   private def inList [A] (v: A, l: List[A]): Boolean = (false /: (l map (_==v))) (_||_)
   private val endLineChar = List('\r', '\n')
+  
+  /**
+   * `WARNING` the tokens are not guaranteed to be valid, such as the parentheses number may be wrong
+   * @return a list of tokens, uses deterministic finite automata method
+   */
+  def getTokens(): List[Token] = {
+    import dfaState._
+    @annotation.tailrec
+    def getTail(state: dfaState, l: List[Token]): List[Token] = state match {
+      case START => nowChar match {
+        
+        case '(' => {moveChar;getTail(START, l:+Token(LPAREN, "(", getProp))}
+        case ')' => {moveChar;getTail(START, l:+Token(RPAREN, ")", getProp))}
+        
+        case '/' => {moveChar;getTail(LCOMMENT, l)}
+        
+        case '=' => {moveChar;getTail(START, l:+Token(DEFINE, "=", getProp))}
+        
+        case '*' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "*", getProp))}
+        case '%' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "%", getProp))}
+        case '+' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "+", getProp))}
+        case '-' => {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "-", getProp))}
+        
+        case '>' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, ">", getProp))}
+        case '<' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "<", getProp))}
+        case '≥' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "≥", getProp))}
+        case '≤' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "≤", getProp))}
+        case '≡' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "≡", getProp))}
+        case '≠' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "¬", getProp))}
+        
+        case '¬' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "¬", getProp))}
+        case '∨' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "∨", getProp))}
+        case '∧' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "∧", getProp))}
+        
+        case '↔' => {moveChar;getTail(START, l:+Token(LOGICOPERATOR, "↔", getProp))}
+        case '⊢' => {moveChar;getTail(START, l:+Token(LOGICOPERATOR, "⊢", getProp))}
+        
+        case 'λ' => {moveChar;getTail(START, l:+Token(LAMBDA, "λ", getProp))}
+        
+        case '■' => {getTail(END, l:+Token(END, "■", getProp))}
+        case _ => {
+          //DEBUG
+          //println(s"$nowChar")
+          //space
+          if(nowChar.isSpaceChar) {
+            //if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
+            moveChar;getTail(START, l)
+          }
+          else if(nowChar == 'i') {
+            if(code.charAt(currentPos + 1) == 'f' && code.charAt(currentPos + 1).isSpaceChar)
+             {moveChar;moveChar;getTail(START, l:+Token(IF, "if", getProp))}
+            else {currentPos = currentPos - 1
+              getTail(START, l:+Token(IDENTIFIER, getIdentifier, getProp))}
+          }
+          //integer or double
+          else if (nowChar.isDigit) {
+            currentPos = currentPos - 1
+            val t = getNumber
+            if(t._1) getTail(START, l:+Token(DOUBLE, t._2, getProp))
+            else getTail(START, l:+Token(INT, t._2, getProp))}
+          //identifier
+          else if (nowChar.isLetter) {
+            currentPos = currentPos - 1
+            getTail(START, l:+Token(IDENTIFIER, getIdentifier, getProp))
+          }
+          //other charaters
+          else {
+            if(inList(nowChar, endLineChar)) currentLine = currentLine + 1
+            moveChar;getTail(START, l)
+          }
+        }
+      }
+      
+      case LCOMMENT => nowChar match {
+        case '/' => {cleanLine;getTail(START, l)}
+        case '*' => {cleanBlock;getTail(START, l)}
+        case _ => {
+          if(nowChar.isSpaceChar) {moveChar;getTail(START, l:+Token(ARITHOPERATOR, "/", getProp))}
+          else {moveChar;getTail(END, l)}
+        }
+      }
+      
+      case _ => l
+    }
+    getTail(START, List())
+  }
 }

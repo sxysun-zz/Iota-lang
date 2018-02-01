@@ -23,8 +23,22 @@ case class DefineExpression (varName: String, value: Expression) extends Express
 
 case class AtomExpression (value: Atom) extends Expression
 
-case class BinaryOperatorExpression [A] (operator: (A, A) => A, left: Expression, right: Expression) extends Expression
+//-------------modified, no support for polymorphism and higher order---------
+case class BinaryOperatorExpression [A <: Atom, B <: Atom, C <: Atom](operator: (A, B) => C, left: Expression, right: Expression) extends Expression
 
-case class ApplicationExpression (functionName: String, body: Expression) extends Expression
+case class ClosureApplicationExpression (closure: Closure, body: Expression) extends Expression
+
+case class ApplicationExpression (functionName: Expression, body: Expression) extends Expression
 
 case class IfExpression (argument: Expression, first: Expression, second: Expression) extends Expression
+
+/**
+ * @return a function closure to make lexical scope for variables, use for pre-defined functions
+ */
+case class Closure (func: LambdaExpression, env: Environment)
+
+/*
+sealed trait Operation[A]
+
+case class AddOperation[A](f: (A, A) => A) extends Operation[A]
+*/

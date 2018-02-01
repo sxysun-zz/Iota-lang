@@ -2,35 +2,50 @@ package main.scala.interpreter
 
 import main.scala.core._
 
-case class Evaluator (ast: AST) {
+case class Evaluator (prog: Expression) {
+  
+  def mainEval(env: Environment): Any = transformAtom(eval(prog, env))
+  
   import dfaState._
-  /*
-  def eval(ast: AST, env: Environment): Atom = ast match {
-    case FragileRoot(c) => eval(c, env)
-    case AtomicNode(v, p) => v match {
-      case Token(INT, v, _) => LiteralInt(v.toInt)
-      case Token(DOUBLE, v, _) => LiteralDouble(v.toDouble)
-      case Token(STRING, v, _) => LiteralString(v)
-      case Token(BOOLEAN, v, _) => LiteralBoolean(v.toBoolean)
-      case Token(IDENTIFIER, v, _) => env.lookUp(v) //look up environment
-      case _ => {
-        throw new RuntimeException("unmatched satomic type")
+  def eval(exp: Expression, env: Environment): Atom = exp match {
+    case AtomExpression(atom) => atom
+    /**
+     * depend on well-typed expression for l and r
+     */
+    case BinaryOperatorExpression(op, l, r) => {
+      val lGot = eval(l, env)
+      val rGot = eval(r, env)
+      val temp = op.asInstanceOf[(Atom, Atom) => Atom](lGot, rGot)
+      println(temp)
+      temp
+      /*
+      lGot match {
+        case AtomInt(lv) => rGot match {
+          case AtomInt(rv) => AtomInt(op.asInstanceOf[(Int, Int) => Int](lv, rv))
+          case AtomDouble(rv) => AtomDouble(op.asInstanceOf[(Int, Double) => Double](lv, rv))
+          case _ => throw new RuntimeException("ill typed expression")
+        }
+        case AtomDouble(lv) => rGot match {
+          case AtomInt(rv) => AtomDouble(op.asInstanceOf[(Double, Int) => Double](lv, rv))
+          case AtomDouble(rv) => AtomDouble(op.asInstanceOf[(Double, Double) => Double](lv, rv))
+          case _ => throw new RuntimeException("ill typed expression")
+        }
+        case _ => {
+          throw new RuntimeException("")
+        }
       }
+      * 
+      */
     }
-    case FragileNode(v, cs, p) => cs.head match{
-      case AtomicNode(Token(BINOPERATOR, v, cp), _) => v match {
-        case "+" => eval(cs.drop(1).head, env) + eval(cs.drop(2).head, env)
-        case "*" => eval(cs.drop(1).head, env) * eval(cs.drop(2).head, env)
-        case "/" => eval(cs.drop(1).head, env) / eval(cs.drop(2).head, env)
-        case "-" => eval(cs.drop(1).head, env) - eval(cs.drop(2).head, env)
-        case "%" => eval(cs.drop(1).head, env) % eval(cs.drop(2).head, env)
-        case _ => throw new RuntimeException("No match for binary operator" + cp)
-      }
-      case _ => {
-        println("here")
-      }
+    case _ => {
+      throw new RuntimeException("no match for valid expression in evaluator")
     }
   }
-  * 
-  */
+  
+  def transformAtom(a: Atom) = a match {
+    case AtomInt(i) => i
+    case AtomDouble(d) => d
+    case AtomBoolean(b) => b
+    case AtomString(s) => s
+  }
 }
