@@ -1,9 +1,9 @@
-# Alayi-lang
+# iota-lang
 ### introduction: 
 Lisp dialet written with Scala, light weight, equipped with latex like grammar for unicode operators. this language is typed. Provides helpful and detailed debug information. AST vadility check.
 
 ### features:
-* Lambda calculus application
+* Lambda[ iota ] calculus application
 * Lexical Scope
 * environment model
 * auto type inference
@@ -11,7 +11,7 @@ Lisp dialet written with Scala, light weight, equipped with latex like grammar f
 
 ### sample:
 ``` scala
-(\lambda (y) ((\lambda (x) (y (x x))) (\lambda (x) (y (x x)))))
+(\iota (y) ((\iota (x) (y (x x))) (\iota (x) (y (x x)))))
 (= x 6.8)
 (\equiv (+ x 1) (* 3.4 2))
 ```
