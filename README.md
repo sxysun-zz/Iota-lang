@@ -12,5 +12,6 @@ Lisp dialet written with Scala, light weight, equipped with latex like grammar f
 ### sample:
 ``` scala
 (\lambda (y) ((\lambda (x) (y (x x))) (\lambda (x) (y (x x)))))
+(= x 6.8)
 (\equiv (+ x 1) (* 3.4 2))
 ```
