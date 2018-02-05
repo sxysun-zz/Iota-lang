@@ -8,11 +8,15 @@ case class Lexer (rawCode: String){
   private var code = rawCode
   private var currentPos = 0
   
+  /**
+   * `IMPORTANT` need better friendlier implementation and error message
+   * @return the information about current code, used for debugging
+   */
   private def getProp = MetaData(currentLine/2, currentPos)
   private def nowChar = code.charAt(currentPos)
   private def moveChar = {currentPos = currentPos + 1}
   
-    /**
+  /**
    * `IMPORTANT`: this function has side effect
    * @return the identifier string if applicable
    */
@@ -72,6 +76,18 @@ case class Lexer (rawCode: String){
   }
   
   /**
+   * used to obtain a string literal
+   * @return the stripped string from source code file
+   */
+  private def getStringLiteral: String = {
+    def get(s: String, p: Unit): String = {
+      if(nowChar == '"') {moveChar; s}
+      else get(s + nowChar, moveChar)
+    }
+    get("", moveChar)
+  }
+  
+  /**
    * some higher order function, written purely for artistic reason :)
    * @return check if an element is in a list
    */
@@ -115,6 +131,11 @@ case class Lexer (rawCode: String){
         case '⊢' => {moveChar;getTail(START, l:+Token(LOGICOPERATOR, "⊢", getProp))}
         
         case 'λ' => {moveChar;getTail(START, l:+Token(LAMBDA, "λ", getProp))}
+        
+        case '"' => {getTail(START, l:+Token(STRING, getStringLiteral, getProp))}
+        
+        case '真' => {moveChar;getTail(START, l:+Token(BOOLEAN, "真", getProp))}
+        case '假' => {moveChar;getTail(START, l:+Token(BOOLEAN, "假", getProp))}
         
         case '■' => {getTail(END, l:+Token(END, "■", getProp))}
         case _ => {

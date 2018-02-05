@@ -24,4 +24,11 @@ object Operations {
   def iidivide = (l: AtomInt, r: AtomInt) => AtomInt(l.value / r.value)
   def iimulti = (l: AtomInt, r: AtomInt) => AtomInt(l.value * r.value)
   def iimod = (l: AtomInt, r: AtomInt) => AtomInt(l.value % r.value)
+  
+  /*
+  implicit def ddtoAtom(f: (AtomDouble, AtomDouble) => AtomDouble): (Atom, Atom) => Atom = {
+    
+  }
+  * 
+  */
 }

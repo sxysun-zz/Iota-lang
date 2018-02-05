@@ -28,4 +28,6 @@ object config {
    * environment default
    */
   val env0 = Environment()
+  
+  val typeT = Parser(tokens).typeInferenceTest()
 }

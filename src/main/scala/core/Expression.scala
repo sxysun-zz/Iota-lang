@@ -23,8 +23,7 @@ case class DefineExpression (varName: String, value: Expression) extends Express
 
 case class AtomExpression (value: Atom) extends Expression
 
-//-------------modified, no support for polymorphism and higher order---------
-case class BinaryOperatorExpression [A <: Atom, B <: Atom, C <: Atom](operator: (A, B) => C, left: Expression, right: Expression) extends Expression
+case class BinaryOperatorExpression [B <% Atom, C <% Atom, A <% Atom](operator: (A, B) => C, left: Expression, right: Expression) extends Expression
 
 case class ClosureApplicationExpression (closure: Closure, body: Expression) extends Expression
 
@@ -37,6 +36,10 @@ case class IfExpression (argument: Expression, first: Expression, second: Expres
  */
 case class Closure (func: LambdaExpression, env: Environment)
 
+object langType extends Enumeration {
+  type langType = Value
+  val lambda, double, int, string, boolean, unit = Value
+}
 /*
 sealed trait Operation[A]
 

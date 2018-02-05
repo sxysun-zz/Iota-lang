@@ -7,7 +7,7 @@ case class Evaluator (prog: Expression) {
   def mainEval(env: Environment): Any = transformAtom(eval(prog, env))
   
   import dfaState._
-  def eval(exp: Expression, env: Environment): Atom = exp match {
+  def eval (exp: Expression, env: Environment): Atom = exp match {
     case AtomExpression(atom) => atom
     /**
      * depend on well-typed expression for l and r
@@ -15,9 +15,10 @@ case class Evaluator (prog: Expression) {
     case BinaryOperatorExpression(op, l, r) => {
       val lGot = eval(l, env)
       val rGot = eval(r, env)
-      val temp = op.asInstanceOf[(Atom, Atom) => Atom](lGot, rGot)
-      println(temp)
-      temp
+      //val temp = op(lGot, rGot)
+      //println(temp)
+      //temp.asInstanceOf[Atom]
+      lGot
       /*
       lGot match {
         case AtomInt(lv) => rGot match {
