@@ -1,6 +1,6 @@
 # iota-lang
 ### introduction: 
-Lisp dialet written with Scala, light weight, equipped with latex-ish grammar for unicode operators. this language is typed. Provides helpful and detailed debug information. code vadility check.
+Lisp dialet written with Scala, light weight, equipped with latex-ish grammar for unicode operators. this language is typed. Provides helpful and detailed debug information. code vadility check. (I used to call this repo alayi-lang)
 
 ### features:
 * Lambda[ iota ] calculus application
