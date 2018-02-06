@@ -42,92 +42,6 @@ case class Parser (tokens: List[Token]) {
     root
   }
   
-  def typeInferenceTest() = typeCheck(getRawAST())
-  
-  /**
-   * @return no interruption if the type is right, a warning if type is wrong
-   */
-  import langType._
-  import dfaState._
-  private def typeCheck(exp: AST): langType = exp match {
-    case FragileRoot(c) => typeCheck(c)
-    case FragileNode(v, cs, p) => cs.head match {
-      
-        //lambda expression
-        case AtomicNode(Token(LAMBDA, content, prop), _) => lambda
-        
-        //define expression
-        case AtomicNode(Token(DEFINE, content, prop), _) => unit
-        
-        //arithmetic binary operator expression
-        case AtomicNode(Token(ARITHOPERATOR, content, prop), _) => {
-           if(cs.length != 4) throw new RuntimeException("wrong number of arguments in arithmetic " + 
-              s"operation, location in $p, current argument is $cs")
-           val left = typeCheck(cs.drop(1).head)
-           val right = typeCheck(cs.drop(2).head)
-           if((left != int && left != double) || (right != int && right != double)) {
-             println(s"$left  $right")
-             throw new RuntimeException(s"ill typed expression, expected arithmetic ones, at $prop")
-           }
-           if(left == double || right == double) double
-           else int
-        }
-        
-        //boolean binary operator expression
-        case AtomicNode(Token(BOOLOPERATOR, content, prop), _) => boolean
-        
-        //closure: defined function application expression
-        case AtomicNode(Token(IDENTIFIER, content, prop), _) => {
-          if(cs.length != 3) throw new RuntimeException("wrong number of arguments in defined closure function " + 
-              s"application, location in $p, current argument is $cs")
-          val funcName = content
-          val body = typeCheck(cs.drop(1).head)
-//---------------not implemented-------------------
-          body
-        }
-        
-        //real-time function application expression
-        case FragileNode(value, content, prop) => {
-          if(cs.length != 3) throw new RuntimeException("wrong number of arguments in function " + 
-              s"application, location in $p, current argument is $cs")
-          val func = typeCheck(cs.head)
-          val body = typeCheck(cs.drop(1).head)
-          
-          if(func.getClass.getName.equals("LambdaExpression")) throw new RuntimeException(func.getClass + "typed expression" + 
-              "appeared in function application position, location in $p, current argument is $cs")
-//---------------not implemented-------------------
-          body
-        }
-        
-        //if expression
-        case AtomicNode(Token(IF, content, prop), _) => {
-          if(cs.length != 5) throw new RuntimeException("wrong number of arguments in if " + 
-              s"expression, location in $p, current argument is $cs")
-          val premises = typeCheck(cs.drop(1).head)
-          val trueJump = typeCheck(cs.drop(2).head)
-          val falseJump = typeCheck(cs.drop(3).head)
-          if(premises != boolean) throw new RuntimeException("ill type in premises of if expression")
-          if(trueJump != falseJump) throw new RuntimeException("indeterministic type if expression, no lub()")
-//---------------need better implementation-------------------
-          trueJump
-        }
-        
-        //error expression
-        case _ => {
-          throw new RuntimeException("ill typed expression in parser")
-        }
-    }
-    case AtomicNode(v, p) => v match {
-        //case Token(IDENTIFIER, content, prop) => {AtomExpression()}
-        case Token(INT, content, prop) => int
-        case Token(DOUBLE, content, prop) => double
-        case Token(STRING, content, prop) => string
-        case Token(BOOLEAN, content, prop) => boolean
-        case Token(k, content, prop) => {throw new RuntimeException("mis matched type" +
-	        s"in syntax tree at $prop, token is $content, token type is $k")}
-    }
-  }
-  
   /**
    * @return a cleaned version of abstract syntax tree
    */
@@ -168,11 +82,10 @@ case class Parser (tokens: List[Token]) {
         
         //arithmetic binary operator expression
         case AtomicNode(Token(ARITHOPERATOR, content, prop), _) => {
-          val leftType = typeCheck(cs.drop(1).head)
-          val rightType = typeCheck(cs.drop(2).head)
+           val opType = ast.checkType
            val left = get(cs.drop(1).head)
            val right = get(cs.drop(2).head)
-           parseArithmeticOp(content, left, right)
+           parseArithmeticOp(content, left, right, opType)
         }
         
         //boolean binary operator expression
@@ -240,86 +153,27 @@ case class Parser (tokens: List[Token]) {
     get(root)
   }
   
-  private def parseArithmeticOp(op: String, left: Expression, right: Expression): Expression = op match {
+  import langType._
+  private def parseArithmeticOp(op: String, left: Expression, right: Expression, opType: langType): Expression = op match {
     case "+" => {
-      println(s"$op for $left and $right")
-      left match {
-          case AtomExpression(AtomInt(_)) => right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.iiplus, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.idplus, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }    
-          case AtomExpression(AtomDouble(_)) =>  right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.diplus, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.ddplus, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }
-          case _ => throw new RuntimeException("invalid type for " + op + " operator")
-      }
+      if(opType == int) BinaryOperatorExpression(Operations.iiplus, left, right)
+      else BinaryOperatorExpression(Operations.ddplus, left, right)
     }
     case "-" => {
-      println(s"$op for $left and $right")
-      left match {
-          case AtomExpression(AtomInt(_)) => right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.iiminus, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.idminus, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }    
-          case AtomExpression(AtomDouble(_)) =>  right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.diminus, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.ddminus, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }
-          case _ => throw new RuntimeException("invalid type for " + op + " operator")
-      }
+      if(opType == int) BinaryOperatorExpression(Operations.iiminus, left, right)
+      else BinaryOperatorExpression(Operations.ddminus, left, right)
     }
     case "*" => {
-      println(s"$op for $left and $right")
-      left match {
-          case AtomExpression(AtomInt(_)) => right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.iimulti, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.idmulti, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }    
-          case AtomExpression(AtomDouble(_)) =>  right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.dimulti, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.ddmulti, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }
-          case _ => throw new RuntimeException("invalid type for " + op + " operator")
-      }
+      if(opType == int) BinaryOperatorExpression(Operations.iimulti, left, right)
+      else BinaryOperatorExpression(Operations.ddmulti, left, right)
     }
     case "/" => {
-      println(s"$op for $left and $right")
-      left match {
-          case AtomExpression(AtomInt(_)) => right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.iidivide, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.iddivide, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }    
-          case AtomExpression(AtomDouble(_)) =>  right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.didivide, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.dddivide, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }
-          case _ => throw new RuntimeException("invalid type for " + op + " operator")
-      }
+      if(opType == int) BinaryOperatorExpression(Operations.iidivide, left, right)
+      else BinaryOperatorExpression(Operations.dddivide, left, right)
     }
     case "%" => {
-      println(s"$op for $left and $right")
-      left match {
-          case AtomExpression(AtomInt(_)) => right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.iimod, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.idmod, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }    
-          case AtomExpression(AtomDouble(_)) =>  right match {
-            case AtomExpression(AtomInt(_)) => BinaryOperatorExpression(Operations.dimod, left, right)
-            case AtomExpression(AtomDouble(_)) => BinaryOperatorExpression(Operations.ddmod, left, right)
-            case _ => BinaryOperatorExpression(Operations.ddminus, left, right)
-          }
-          case _ => throw new RuntimeException("invalid type for " + op + " operator")
-      }
+      if(opType == int) BinaryOperatorExpression(Operations.iimod, left, right)
+      else BinaryOperatorExpression(Operations.ddmod, left, right)
     }
     case _ => throw new RuntimeException(s"no match for operator $op")
   }

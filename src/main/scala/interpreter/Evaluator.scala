@@ -4,49 +4,28 @@ import main.scala.core._
 
 case class Evaluator (prog: Expression) {
   
-  def mainEval(env: Environment): Any = transformAtom(eval(prog, env))
+  def mainEval(env: Environment): Any = eval(prog, env).stripValue
   
   import dfaState._
+  import langType._
   def eval (exp: Expression, env: Environment): Atom = exp match {
     case AtomExpression(atom) => atom
-    /**
-     * depend on well-typed expression for l and r
-     */
     case BinaryOperatorExpression(op, l, r) => {
-      val lGot = eval(l, env)
-      val rGot = eval(r, env)
-      //val temp = op(lGot, rGot)
-      //println(temp)
-      //temp.asInstanceOf[Atom]
-      lGot
-      /*
-      lGot match {
-        case AtomInt(lv) => rGot match {
-          case AtomInt(rv) => AtomInt(op.asInstanceOf[(Int, Int) => Int](lv, rv))
-          case AtomDouble(rv) => AtomDouble(op.asInstanceOf[(Int, Double) => Double](lv, rv))
-          case _ => throw new RuntimeException("ill typed expression")
-        }
-        case AtomDouble(lv) => rGot match {
-          case AtomInt(rv) => AtomDouble(op.asInstanceOf[(Double, Int) => Double](lv, rv))
-          case AtomDouble(rv) => AtomDouble(op.asInstanceOf[(Double, Double) => Double](lv, rv))
-          case _ => throw new RuntimeException("ill typed expression")
-        }
-        case _ => {
-          throw new RuntimeException("")
-        }
-      }
-      * 
-      */
+      val lEvaled = eval(l, env)
+      val rEvaled = eval(r, env)
+      // handle the arithmetic operator case
+      if(exp.inferType == double) op(safeConversion(lEvaled), 
+          safeConversion(rEvaled)).asInstanceOf[Atom]
+      else op(lEvaled, rEvaled).asInstanceOf[Atom]
     }
     case _ => {
       throw new RuntimeException("no match for valid expression in evaluator")
     }
   }
   
-  def transformAtom(a: Atom) = a match {
-    case AtomInt(i) => i
-    case AtomDouble(d) => d
-    case AtomBoolean(b) => b
-    case AtomString(s) => s
+  private def safeConversion(a: Atom): AtomDouble = a match {
+     case a@AtomDouble(_) => a
+     case a@AtomInt(_) => a.toAtomDouble
+     case _ => throw new RuntimeException(s"unable to recognized arithmetic identity $a")
   }
 }
