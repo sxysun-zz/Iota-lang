@@ -15,9 +15,9 @@ and useful lambda calculus rules like beta reduction and alpha conversion to cre
 (= (consn x y)
   (\\lambda (m) (m x y)))
 (= (carn x)
-  (x (lambda (a b) a)))
+  (x (\\lambda (a b) a)))
 (= (cdrn x)
-  (x (lambda (a b) b)))
+  (x (\\lambda (a b) b)))
 ```
 2. Types
 * auto type inference (Martin Lof method)
