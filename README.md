@@ -6,18 +6,18 @@ Lisp dialet written with Scala, light weight, equipped with latex-ish grammar fo
 1. Lambda calculus application
 * raw operation on perocedures (examples include church enumeration :
 ``` racket
-(= zero (\\lambda (f) (\\lambda (x) (x))))
+(= zero (λ (f) (λ (x) (x))))
 (= (add-one n)
-  (\\lambda (f) (\\lambda (x) (f (((n) (f)) (x))))))
+  (λ (f) (λ (x) (f (((n) (f)) (x))))))
 ```
 and useful lambda calculus rules like beta reduction and alpha conversion to create data structure:
 ``` racket
 (= (consn x y)
-  (\\lambda (m) (m x y)))
+  (λ (m) (m x y)))
 (= (carn x)
-  (x (\\lambda (a b) a)))
+  (x (λ (a b) a)))
 (= (cdrn x)
-  (x (\\lambda (a b) b)))
+  (x (λ (a b) b)))
 ```
 2. Types
 * auto type inference (Martin Lof method)
@@ -28,9 +28,9 @@ and useful lambda calculus rules like beta reduction and alpha conversion to cre
 * useful and accurate exception information
 
 ### sample:
-``` scala
-(\lambda (y) ((\lambda (x) (y (x x))) (\lambda (x) (y (x x)))))
+``` racket
+(λ (y) ((λ (x) (y (x x))) (λ (x) (y (x x)))))
 (= x 6.8)
-(\equiv (+ x 1) (* 3.4 2))
+(≡ (+ x 1) (* 3.4 2))
 (if 真 (% x 2) (^ x 3))
 ```
