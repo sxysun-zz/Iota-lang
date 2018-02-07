@@ -19,6 +19,12 @@ sealed trait Atom {
     case AtomBoolean(b) => b
     case AtomString(s) => s
   }
+  
+  def arithSafeConversion = this match {
+    case a@AtomDouble(_) => a
+    case a@AtomInt(_) => a.toAtomDouble
+    case _ => throw new RuntimeException(s"unable to recognized $this, should be an arithmetic identity")
+  }
 }
 
 import langType._
@@ -49,4 +55,11 @@ case class AtomString (value: String) extends Atom {
   implicit def toAtomInt(): AtomInt = AtomInt(this.value.toInt)
   implicit def toAtomDouble(): AtomDouble = AtomDouble(this.value.toDouble)
   override def toString() = this.value.toString()
+}
+
+/**
+ * need to think of its values
+ */
+case class AtomIdentifier(name: String) extends Atom {
+  override def toString() = this.name
 }

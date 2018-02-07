@@ -1,7 +1,7 @@
 package main.scala.core
 
 /**
- * ``IMPORTANT`` the Scala map behaves like a stack
+ * ``IMPORTANT`` the `Scala` map behaves like a stack
  */
 case class Environment () {
   private var m: Map[String, Any] = Map(

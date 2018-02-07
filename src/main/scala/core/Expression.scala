@@ -61,6 +61,7 @@ sealed trait Expression {
       //----------------this rule of inference is incorrect------------------------------
       case ApplicationExpression(f, b) => infer(b)
       case IfExpression(ar, f, s) => infer(f)
+      //----------------identifier support------------------------------
       case _ => throw new RuntimeException("failed to infer type of " + exp.print())
     }
     infer(this)
@@ -127,6 +128,11 @@ case class IfExpression (argument: Expression, first: Expression, second: Expres
  * @return a function closure to make lexical scope for variables, use for pre-defined functions
  */
 case class Closure (func: LambdaExpression, env: Environment)
+
+/**
+ * @return a closure strucutre of certain identifier
+ */
+case class AtomClosure (value: AtomIdentifier, env: Environment)
 
 object langType extends Enumeration {
   type langType = Value

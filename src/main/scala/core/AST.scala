@@ -19,14 +19,14 @@ sealed trait AST {
   /**
    * @return type of current abstract syntax tree
    */
-  def checkType: langType = {
-    typeCheck(this)
+  def checkType(env: Environment): langType = {
+    typeCheck(this, env)
   }
   
   /**
    * @return no interruption if the type is right, a warning if type is wrong
    */
-  private def typeCheck(exp: AST): langType = exp match {
+  private def typeCheck(exp: AST, env: Environment): langType = exp match {
     case FragileRoot(c) => typeCheck(c)
     case FragileNode(v, cs, p) => cs.head match {
       

@@ -14,18 +14,12 @@ case class Evaluator (prog: Expression) {
       val lEvaled = eval(l, env)
       val rEvaled = eval(r, env)
       // handle the arithmetic operator case
-      if(exp.inferType == double) op(safeConversion(lEvaled), 
-          safeConversion(rEvaled)).asInstanceOf[Atom]
+      if(exp.inferType == double) op(lEvaled.arithSafeConversion, 
+          rEvaled.arithSafeConversion).asInstanceOf[Atom]
       else op(lEvaled, rEvaled).asInstanceOf[Atom]
     }
     case _ => {
       throw new RuntimeException("no match for valid expression in evaluator")
     }
-  }
-  
-  private def safeConversion(a: Atom): AtomDouble = a match {
-     case a@AtomDouble(_) => a
-     case a@AtomInt(_) => a.toAtomDouble
-     case _ => throw new RuntimeException(s"unable to recognized arithmetic identity $a")
   }
 }
