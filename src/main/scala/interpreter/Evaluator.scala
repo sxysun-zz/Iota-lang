@@ -24,8 +24,11 @@ case class Evaluator (prog: List[Expression]) {
     case BinaryOperatorExpression(op, l, r) => {
       val lEvaled = eval(l, env)
       val rEvaled = eval(r, env)
+      println(l)
+      println(lEvaled.inferType(env))
+      println(exp.inferType(env))
       // handle the arithmetic operator case
-      if(exp.inferType == double) op(lEvaled.arithSafeConversion, 
+      if(exp.inferType(env) == double) op(lEvaled.arithSafeConversion, 
           rEvaled.arithSafeConversion).asInstanceOf[Atom]
       else op(lEvaled, rEvaled).asInstanceOf[Atom]
     }

@@ -42,7 +42,7 @@ sealed trait Expression {
    * `WARNING` no identifier support yet
    * @return the inferred type of a certain expression
    */
-  def inferType: langType = {
+  def inferType(env: Environment): langType = {
     def infer(exp: Expression): langType = exp match {
       case LambdaExpression(v, b) => lambda
       case DefineExpression(v, v_) => unit
@@ -51,7 +51,7 @@ sealed trait Expression {
         case AtomDouble(_) => double
         case AtomInt(_) => int
         case AtomString(_) => string
-        case AtomIdentifier(_) => string
+        case t@AtomIdentifier(_) => t.inferType(env)
       }
       //Closure property of Operations --------- subject to change 
       case BinaryOperatorExpression(op, l, r) => {
@@ -68,48 +68,6 @@ sealed trait Expression {
     }
     infer(this)
   }
-  /*
-   * (define infer
-  (lambda (exp env)
-    (match exp
-      ((? symbol? x)
-       (let ((sed (search x env)))
-         (cond
-           ((not sed)
-            (display "undefined var"))
-           (else sed))))
-      ((? number? x) `int)
-      ((? string? x) `string)
-      ((? boolean? x) `boolean)
-      (`(lambda (,x) ,e)
-       (closure exp env))
-      (`(`let ((,x ,e1)) ,e2)
-       (let ((t (infer e1 env)))
-         (infer e2 (ext-env x t env))))
-      (`(if ,t ,e1 ,e2)
-       (let ((b (infer t env)))
-         (cond
-           ((eq? b `bool)
-            (let ((t1 (infer e1 env))
-                  (t2 (infer e2 env)))
-              (cond
-                ((eq? t1 t2) t1)
-                (else
-                 (display "branch type mismatch"))))))))
-      (`(,e1 ,e2)
-       (let ((t1 (infer e1 env))
-             (t2 (infer e2 env)))
-         (match t1
-           ((closure `(lambda (,x) ,e) env-old)
-            (infer e (ext-env x t2 env-old))))))
-      (`(,e1 ,op ,e2)
-       (let ((t1 (infer e1 env))
-             (t2 (infer e2 env)))
-         (cond
-           ((not (eq? t1 `int)) (display "first operand not int"))
-           ((not (eq? t2 `int)) (display "second operand not int"))
-(else `int)))))))
-   */
 }
 
 case class LambdaExpression (varName: String, body: Expression) extends Expression

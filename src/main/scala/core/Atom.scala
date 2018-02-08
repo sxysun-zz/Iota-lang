@@ -5,14 +5,17 @@ package main.scala.core
  */
 sealed trait Atom {
   import langType._
-  /**
-   * @return no identifier support yet
-   */
-  def inferType: langType = this match {
+  def inferType(env: Environment): langType = this match {
     case AtomBoolean(_) => boolean
     case AtomInt(_) => int
     case AtomDouble(_) => double
     case AtomString(_) => string
+    case AtomIdentifier(x) => {
+      env.lookUp(x) match {
+        case Right(s) => s.inferType(env)
+        case Left(s) => throw new RuntimeException(s)
+      }
+    }
     case _ => throw new RuntimeException(s"unable to infer type for atom $this")
   }
   

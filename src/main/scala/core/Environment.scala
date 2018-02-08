@@ -9,7 +9,7 @@ case class TypeEnvironment () {
   )
   
   def copyExternal(env: Environment) = {env.table.map(x => {
-      m = m + (x._1 -> x._2.inferType)
+      m = m + (x._1 -> x._2.inferType(env))
     }); this}
   
   def extendEnvironment(name: String, attribute: langType): TypeEnvironment = {
@@ -54,7 +54,7 @@ case class Environment () {
   
   import langType._
   def getType(name: String): Either[String, langType] = {
-    if(table.contains(name)) Right(table(name).inferType)
+    if(table.contains(name)) Right(table(name).inferType(this))
     else Left(s"the identifier $name is not found")
   }
 }
