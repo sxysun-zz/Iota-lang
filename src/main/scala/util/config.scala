@@ -13,6 +13,11 @@ object config {
   val testCode = Macro(beforeMacro).initializeRaw()
   
   /**
+   * environment default
+   */
+  val env0 = Environment()
+  
+  /**
    * lexical analyzer
    */
   val tokens = Lexer(config.testCode).getTokens()
@@ -20,10 +25,5 @@ object config {
   /**
    * parser abstract syntax tree
    */
-  val expr = Parser(tokens).getSExpression()
-  
-  /**
-   * environment default
-   */
-  val env0 = Environment()
+  val expr = Parser(tokens, env0).getSExpression()
 }

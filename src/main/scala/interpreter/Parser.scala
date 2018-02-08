@@ -4,11 +4,11 @@ import scala.annotation.Annotation
 import main.scala.core._
 import scala.collection.mutable._
 
-case class Parser (tokens: List[Token]) {
+case class Parser (tokens: List[Token], env: Environment) {
   
   private var root: FragileRoot = FragileRoot(ListBuffer(FragileNode(tokens.head, ListBuffer(), null)))
   private var currentNode = root.children.head
-  private var parseTimeSymbolTable = TypeEnvironment()
+  private var parseTimeSymbolTable = TypeEnvironment().copyExternal(env)
   
   /**
    * `WARNING` not guaranteed to be a right syntax tree

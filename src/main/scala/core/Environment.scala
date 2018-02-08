@@ -13,14 +13,8 @@ case class TypeEnvironment () {
     }); this}
   
   def extendEnvironment(name: String, attribute: langType): TypeEnvironment = {
-    if(!m.contains(name)){
-      m = m + (name -> attribute)
-    } else if (m(name) != attribute) {
-      //m(name) = attribute
-      m = m + (name -> attribute)
-    } else {}
-    
-    this
+    if(!m.contains(name)) m = m + (name -> attribute)
+    else if (m(name) != attribute) m = m.updated(name, attribute); this
   }
   
   def lookUp(name: String): Either[String, langType] = {
@@ -38,11 +32,12 @@ case class Environment () {
   var table: Map[String, Atom] = Map(
       "#f" -> AtomBoolean(false),
       "#t" -> AtomBoolean(true),
-      "INF" -> AtomInt(0xffff)
+      "INF" -> AtomInt(Int.MaxValue)
   )
   
   def extendEnvironment(name: String, attribute: Atom) = {
-    table = table + (name -> attribute)
+    if(table.contains(name)) table = table.updated(name, attribute)
+    else table = table + (name -> attribute)
   }
   
   def lookUp(name: String): Either[String, Atom] = {
@@ -56,5 +51,12 @@ case class Environment () {
   def getType(name: String): Either[String, langType] = {
     if(table.contains(name)) Right(table(name).inferType(this))
     else Left(s"the identifier $name is not found")
+  }
+  
+  def replPrint = {
+    println("symbol table: ")
+    println("-----")
+    this.table.map(x => println(x._1+" -> "+x._2))
+    println("-----")
   }
 }
