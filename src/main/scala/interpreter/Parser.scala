@@ -6,8 +6,9 @@ import scala.collection.mutable._
 
 case class Parser (tokens: List[Token]) {
   
-  private var root: FragileRoot = FragileRoot(FragileNode(tokens.head, ListBuffer(), null))
-  private var currentNode = root.child
+  private var root: FragileRoot = FragileRoot(ListBuffer(FragileNode(tokens.head, ListBuffer(), null)))
+  private var currentNode = root.children.head
+  private var parseTimeSymbolTable = TypeEnvironment()
   
   /**
    * `WARNING` not guaranteed to be a right syntax tree
@@ -16,7 +17,6 @@ case class Parser (tokens: List[Token]) {
    */
   private def getRawAST(): FragileRoot = {
     import dfaState._
-    if(currentNode.value.kind != LPAREN) throw new RuntimeException("syntax error at file head")
     @annotation.tailrec
     def getTail(l: List[Token]): Unit = l.head match {
       case t@Token(END, _,_) => {Unit} // termination command
@@ -30,8 +30,22 @@ case class Parser (tokens: List[Token]) {
         //println(l map (_.value))
         val newNode = AtomicNode(t, currentNode)
         currentNode.child.append(newNode)
-        currentNode = currentNode.parent
-        getTail(l.drop(1))
+        if(currentNode.parent == null) {
+          l.drop(1).head match {
+            case t@Token(END, _,_) => {
+              //println("get raw abstract syntax tree completed")
+              Unit
+            }
+            case _ => {
+              root.children.append(FragileNode(l.drop(1).head, ListBuffer(), null))
+              currentNode = root.children.last
+              getTail(l.drop(2))
+            }
+          }
+        } else {
+          currentNode = currentNode.parent
+          getTail(l.drop(1))
+        }
       }
       case t@_ => {
         currentNode.child.append(AtomicNode(t, currentNode))
@@ -45,11 +59,13 @@ case class Parser (tokens: List[Token]) {
   /**
    * @return a cleaned version of abstract syntax tree
    */
-  def getSExpression(): Expression = {
+  def getSExpression(): List[Expression] = {
     import dfaState._
     root = getRawAST()
+    //build up the overall symbol table for parser type check
+    root.checkType(parseTimeSymbolTable)
     def get(ast: AST): Expression = ast match {
-      case FragileRoot(c) => get(c)
+      case FragileRoot(c) => get(c.head)
       case FragileNode(v, cs, p) => cs.head match{
         
         //take care of all procedures and lambda expressions
@@ -60,7 +76,7 @@ case class Parser (tokens: List[Token]) {
               s"expression, location in $p, current argument is $cs")
           var varName: String = ""
           cs.drop(2).head match {
-            case AtomicNode(Token(IDENTIFIER, content, prop), _) => varName = content
+            case AtomicNode(Token(IDENTIFIER, _content, _prop), _) => varName = _content
             case _ => throw new RuntimeException("wrong lambda expression identifier type" + 
                 s" at $p, current argument is $cs")
           }
@@ -73,16 +89,18 @@ case class Parser (tokens: List[Token]) {
               s"clause, location in $p, current argument is $cs")
           var varName: String = ""
           cs.drop(1).head match {
-            case AtomicNode(Token(IDENTIFIER, content, prop), _) => varName = content
+            case AtomicNode(Token(IDENTIFIER, _content, _prop), _) => varName = _content
             case _ => throw new RuntimeException("wrong define clause variable name" + 
                 s" at $p, current argument is $cs")
           }
-          DefineExpression(varName, get(cs.drop(2).head))
+          val attr = get(cs.drop(2).head)
+          DefineExpression(varName, attr)
         }
         
         //arithmetic binary operator expression
         case AtomicNode(Token(ARITHOPERATOR, content, prop), _) => {
-           val opType = ast.checkType
+           //println(content)
+           val opType = ast.checkType(parseTimeSymbolTable)
            val left = get(cs.drop(1).head)
            val right = get(cs.drop(2).head)
            parseArithmeticOp(content, left, right, opType)
@@ -118,7 +136,8 @@ case class Parser (tokens: List[Token]) {
           val body = get(cs.drop(1).head)
 //--------------------------------------------------------------------------------------------
 //type check function usage implementation
-          if(func.getClass.getName.equals(LambdaExpression)) throw new RuntimeException(func.getClass + "typed expression" + 
+          import langType._
+          if(cs.head.checkType(parseTimeSymbolTable) != lambda) throw new RuntimeException("non-lambda typed expression" + 
               "appeared in function application position, location in $p, current argument is $cs")
           ApplicationExpression(func, body)
         }
@@ -140,7 +159,7 @@ case class Parser (tokens: List[Token]) {
       }
       //atomic expression
       case AtomicNode(v, p) => v match {
-        //case Token(IDENTIFIER, content, prop) => {AtomExpression()}
+        case Token(IDENTIFIER, content, prop) => {AtomExpression(AtomIdentifier(content))}
         case Token(INT, content, prop) => {AtomExpression(AtomInt(content.toInt))}
         case Token(DOUBLE, content, prop) => {AtomExpression(AtomDouble(content.toDouble))}
         case Token(STRING, content, prop) => {AtomExpression(AtomString(content))}
@@ -150,7 +169,7 @@ case class Parser (tokens: List[Token]) {
         }
       }
     }
-    get(root)
+    root.children.map(get(_)).toList
   }
   
   import langType._

@@ -14,5 +14,6 @@ object LexerTest {
   def beautyPrint(l: List[Token]) = {
     println(l map ("\""+ _.value + "\""))
     println(l map ("\""+ _.property.lineNumber + "\""))
+    println(l map ("\""+ _.kind + "\""))
   }
 }

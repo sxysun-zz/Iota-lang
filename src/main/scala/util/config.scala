@@ -23,16 +23,6 @@ object config {
   val expr = Parser(tokens).getSExpression()
   
   /**
-   * evaluator
-   */
-  val eval = Evaluator(expr).mainEval(Environment())
-  
-  /**
-   * type inference
-   */
-  val typeOfRootExpr = expr.inferType
-  
-  /**
    * environment default
    */
   val env0 = Environment()

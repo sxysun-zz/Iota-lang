@@ -5,7 +5,10 @@ package main.scala.core
  */
 sealed trait Atom {
   import langType._
-  def inferType = this match {
+  /**
+   * @return no identifier support yet
+   */
+  def inferType: langType = this match {
     case AtomBoolean(_) => boolean
     case AtomInt(_) => int
     case AtomDouble(_) => double
@@ -13,11 +16,15 @@ sealed trait Atom {
     case _ => throw new RuntimeException(s"unable to infer type for atom $this")
   }
   
+  /**
+   * @return no identifier support yet
+   */
   def stripValue = this match {
     case AtomInt(i) => i
     case AtomDouble(d) => d
     case AtomBoolean(b) => b
     case AtomString(s) => s
+    case AtomIdentifier(n) => n
   }
   
   def arithSafeConversion = this match {
@@ -63,3 +70,13 @@ case class AtomString (value: String) extends Atom {
 case class AtomIdentifier(name: String) extends Atom {
   override def toString() = this.name
 }
+
+/*
+/**
+ * @return a closure strucutre of certain identifier
+ */
+case class AtomClosure (value: AtomIdentifier, env: Environment) extends Atom{
+  def getValue = env.lookUp(value.name)
+  override def toString = s"Closure with $value and $env"
+}
+*/

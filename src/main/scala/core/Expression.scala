@@ -39,6 +39,7 @@ sealed trait Expression {
    * ```IMPORTANT``` this function assumes well-typed expressions to work ideally, 
    * because the type checking has been done at the abstract syntax tree to 
    * expression stage in parser
+   * `WARNING` no identifier support yet
    * @return the inferred type of a certain expression
    */
   def inferType: langType = {
@@ -50,6 +51,7 @@ sealed trait Expression {
         case AtomDouble(_) => double
         case AtomInt(_) => int
         case AtomString(_) => string
+        case AtomIdentifier(_) => string
       }
       //Closure property of Operations --------- subject to change 
       case BinaryOperatorExpression(op, l, r) => {
@@ -127,12 +129,7 @@ case class IfExpression (argument: Expression, first: Expression, second: Expres
 /**
  * @return a function closure to make lexical scope for variables, use for pre-defined functions
  */
-case class Closure (func: LambdaExpression, env: Environment)
-
-/**
- * @return a closure strucutre of certain identifier
- */
-case class AtomClosure (value: AtomIdentifier, env: Environment)
+case class Closure (func: Expression, env: Environment)
 
 object langType extends Enumeration {
   type langType = Value

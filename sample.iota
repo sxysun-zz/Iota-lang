@@ -1,8 +1,10 @@
-(+ 13 (- 32.0 (* 5 1)))
+(= x 1)
+(= y 32.0)
+(+ 13 (- y (* 5 x)))
 //(lambda (x) (+ x x))
 //(= x 1)
 //(> x 2)
-/* \greaterOrEqual \equiv
+/* \ge \equiv
 (defun max
       (lambda (m)
             (lambda (n)
