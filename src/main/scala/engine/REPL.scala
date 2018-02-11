@@ -46,13 +46,13 @@ object REPL {
     else {
       val resName = "res"+i
       env0.extendEnvironment(resName, r._1)
-      println(resName+": "+r._2+" = "+r._1.stripValue)
+      if(r._2 == langType.lambda) println(resName+": "+r._1.inferType(env0)+" = "+r._1.stripValue)
+      else println(resName+": "+r._2+" = "+r._1.stripValue)
     }
   }
   
   private def evaluateSingle(cmd: String) = {
     val repl = Parser(Lexer(Macro(cmd).initializeRaw()).getTokens(), env0).getSExpression()
-    val finalValue = Evaluator(repl).eval(repl.head, env0)
-    (finalValue, finalValue.inferType(env0))
+    (Evaluator(repl).eval(repl.head, env0), repl.head.inferType(env0))
   }
 }
