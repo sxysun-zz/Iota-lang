@@ -19,6 +19,7 @@ and useful lambda calculus rules like beta reduction and alpha conversion to cre
 (= (cdrn x)
   (x (λ (a b) b)))
 ```
+* higher order function and currying
 2. Types
 * auto type inference (Martin Lof method)
 * lexical scope
@@ -26,6 +27,21 @@ and useful lambda calculus rules like beta reduction and alpha conversion to cre
 3. Debugging
 * code vadility check (AST reform)
 * useful and accurate exception information
+4. Interactive REPL
+* evaluate the expression you want at anytime with friendly environment maintaince
+``` racket
+(= x 1.0)
+(= f (\lambda (x) (+ x x)))
+\lookup
+(f x)
+(f res2)
+(f res3)
+(if (\eq x 1.0) (= x (+ x 1)) (= x 2.1))
+(+ x 0)
+(= b #f)
+(\equiv b #t)
+exit
+```
 
 ### sample:
 ``` racket
