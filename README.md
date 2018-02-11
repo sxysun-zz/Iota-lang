@@ -1,6 +1,15 @@
 # iota-lang
 ### introduction: 
 Lisp dialet written with Scala, light weight, equipped with latex-ish grammar for unicode operators. this language is typed. Provides helpful and detailed debug information. code vadility check. (I used to call this repo alayi-lang)
+``` racket
+(= fac
+   (\lambda (x)
+     (if (\eq (- x 1) 0)
+         1
+         (* x (fac (- x 1))))))
+(= x 9)
+(fac x)
+```
 
 ### features:
 1. Lambda calculus application
