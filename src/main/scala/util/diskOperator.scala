@@ -8,8 +8,8 @@ object diskOperator {
   
   def load(path: String): String = Source.fromFile(path).mkString
   
-  def writeToLocalDisk(path: String, content: String): Unit = {
-    val writer = new BufferedWriter(new FileWriter(new File(path)))
+  def writeToLocalDisk(path: String, content: String, append: Boolean): Unit = {
+    val writer = new BufferedWriter(new FileWriter(new File(path), append))
     writer.write(content)
     writer.close()
   }

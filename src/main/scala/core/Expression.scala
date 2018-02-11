@@ -87,7 +87,7 @@ case class IfExpression (argument: Expression, first: Expression, second: Expres
 /**
  * @return a function closure to make lexical scope for variables, use for pre-defined functions
  */
-case class Closure (func: Expression, env: Environment)
+case class Closure (func: Expression, env: Environment) extends Expression
 
 object langType extends Enumeration {
   type langType = Value

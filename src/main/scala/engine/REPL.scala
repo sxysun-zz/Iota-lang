@@ -3,12 +3,14 @@ package main.scala.engine
 import main.scala.interpreter._
 import main.scala.core._
 import scala.io._
+import main.scala.util._
 
 object REPL {
   import langType._
   
   private var env0 = Environment()
   private val replIns = "iota-lang> "
+  private val savedIns = "./repl.iota"
   
   def initiate = {
     println("welcome to iota-lang, type in expressions for evaluation or"+
@@ -16,6 +18,7 @@ object REPL {
     def loop(i: Int): Unit = {
       printInstr
       val cmd = StdIn.readLine()
+      diskOperator.writeToLocalDisk(savedIns, cmd+"\n\r", true)
       if(cmd.equals("exit")) Unit
       else if(cmd.equals("\\lookup")) {
         env0.replPrint

@@ -33,10 +33,16 @@ sealed trait AST {
     case FragileNode(v, cs, p) => cs.head match {
       
         //lambda expression
-        case AtomicNode(Token(LAMBDA, content, prop), _) => lambda
+        case AtomicNode(Token(LAMBDA, content, prop), _) => {
+          if(cs.length != 4) throw new RuntimeException("wrong number of arguments in lambda" + 
+              s"expression, location in $p, current argument is $cs")
+          lambda
+        }
         
         //define expression
         case AtomicNode(Token(DEFINE, content, prop), _) => {
+          if(cs.length != 4) throw new RuntimeException("wrong number of arguments in define " + 
+              s"clause, location in $p, current argument is $cs")
           var varName = ""
           cs.drop(1).head match {
             case AtomicNode(Token(IDENTIFIER, _content, _prop), _) => varName = _content
@@ -63,7 +69,11 @@ sealed trait AST {
         }
         
         //boolean binary operator expression
-        case AtomicNode(Token(BOOLOPERATOR, content, prop), _) => boolean
+        case AtomicNode(Token(BOOLOPERATOR, content, prop), _) => {
+          if(cs.length != 4) throw new RuntimeException("wrong number of arguments in boolean " + 
+              s"operation, location in $p, current argument is $cs")
+          boolean
+        }
         
         //closure: defined function application expression
         case AtomicNode(Token(IDENTIFIER, content, prop), _) => {

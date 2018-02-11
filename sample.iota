@@ -1,8 +1,12 @@
-(= x 1)
-(= y 32.0)
-(= z 13)
-(+ z (- y (* 5 x)))
-//(lambda (x) (+ x x))
+(= x 1.8)								//1th
+(= y 32.0)								//2th
+(= z 13)								//3th
+((\lambda (x) (* x (+ x x))) (+ 1 x))	//4th
+(+ z (- y (* 5 x)))						//5th
+((\lambda (r) (+ r y)) x)				//6th
+((\lambda (x) ((\lambda (z) (+ z z)) 5.0)) 2.0)
+
+
 //(= x 1)
 //(> x 2)
 /* \ge \equiv

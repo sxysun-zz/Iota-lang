@@ -25,5 +25,5 @@ object config {
   /**
    * parser abstract syntax tree
    */
-  val expr = Parser(tokens, env0).getSExpression()
+  val parser = Parser(tokens, env0)
 }

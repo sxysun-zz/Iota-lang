@@ -6,7 +6,7 @@ import main.scala.util._
 
 object EvaluatorTest {
   def main(args: Array[String]): Unit = {
-    val evaled = Evaluator(config.expr).mainEval(config.env0)
+    val evaled = Evaluator(config.parser.getSExpression()).mainEval(config.env0)
     printEvaluationResult(evaled)
   }
   

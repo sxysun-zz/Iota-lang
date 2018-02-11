@@ -1,0 +1,5 @@
+\lookup
+(= x 0)
+((\lambda (x) (+ x x)) 1.9)
+exit
+

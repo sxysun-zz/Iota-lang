@@ -38,6 +38,19 @@ case class Evaluator (prog: List[Expression]) {
       env.extendEnvironment(n, definedExpr)
       AtomIdentifier(n)
     }
+    case ApplicationExpression(f, b) => {
+      f match {
+        case LambdaExpression(v_, b_) => {
+          val applicatee = eval(b, env)
+          val newEnv = Environment().copyExternal(env)extendEnvironment(v_, applicatee)
+          eval(b_, newEnv)
+        }
+        case _ => throw new RuntimeException(s"not function application in $f")
+      }
+    }
+    case exp@LambdaExpression(v, b) => {
+      eval(b, env)
+    }
     case _ => {
       throw new RuntimeException("no match for valid expression in evaluator")
     }

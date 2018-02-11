@@ -15,7 +15,7 @@ case class Parser (tokens: List[Token], env: Environment) {
    * `IMPORTANT` this function has side effect
    * @return a crude crafted abstract syntax tree
    */
-  private def getRawAST(): FragileRoot = {
+  def getRawAST(): FragileRoot = {
     import dfaState._
     @annotation.tailrec
     def getTail(l: List[Token]): Unit = l.head match {
@@ -64,54 +64,52 @@ case class Parser (tokens: List[Token], env: Environment) {
     root = getRawAST()
     //build up the overall symbol table for parser type check
     root.checkType(parseTimeSymbolTable)
-    def get(ast: AST): Expression = ast match {
-      case FragileRoot(c) => get(c.head)
+    def get(ast: AST, env: TypeEnvironment): Expression = ast match {
+      case FragileRoot(c) => get(c.head, env)
       case FragileNode(v, cs, p) => cs.head match{
         
         //take care of all procedures and lambda expressions
         
         //lambda expression
         case AtomicNode(Token(LAMBDA, content, prop), _) => {
-          if(cs.length != 6) throw new RuntimeException("wrong number of arguments in lambda" + 
-              s"expression, location in $p, current argument is $cs")
           var varName: String = ""
-          cs.drop(2).head match {
-            case AtomicNode(Token(IDENTIFIER, _content, _prop), _) => varName = _content
-            case _ => throw new RuntimeException("wrong lambda expression identifier type" + 
-                s" at $p, current argument is $cs")
+          cs.drop(1).head match {
+            case FragileNode(v_, cs_, p_) => cs_.head match {
+              case AtomicNode(Token(IDENTIFIER, _content, _prop), _) => varName = _content
+              case _ => throw new RuntimeException("wrong lambda expression identifier type" + 
+                 s" at $p, current argument is $cs")
+            }
+            case _ => throw new RuntimeException(s"wrong lambda expression at $prop")
           }
-          LambdaExpression(varName, get(cs.drop(4).head))
+          val newEnv = alphaConversion(varName, env, cs.drop(2).head)
+          LambdaExpression(varName, get(cs.drop(2).head, newEnv))
         }
         
         //define expression
         case AtomicNode(Token(DEFINE, content, prop), _) => {
-          if(cs.length != 4) throw new RuntimeException("wrong number of arguments in define " + 
-              s"clause, location in $p, current argument is $cs")
           var varName: String = ""
           cs.drop(1).head match {
             case AtomicNode(Token(IDENTIFIER, _content, _prop), _) => varName = _content
             case _ => throw new RuntimeException("wrong define clause variable name" + 
                 s" at $p, current argument is $cs")
           }
-          val attr = get(cs.drop(2).head)
+          val attr = get(cs.drop(2).head, env)
           DefineExpression(varName, attr)
         }
         
         //arithmetic binary operator expression
         case AtomicNode(Token(ARITHOPERATOR, content, prop), _) => {
            //println(content)
-           val opType = ast.checkType(parseTimeSymbolTable)
-           val left = get(cs.drop(1).head)
-           val right = get(cs.drop(2).head)
+           val opType = ast.checkType(env)
+           val left = get(cs.drop(1).head, env)
+           val right = get(cs.drop(2).head, env)
            parseArithmeticOp(content, left, right, opType)
         }
         
         //boolean binary operator expression
         case AtomicNode(Token(BOOLOPERATOR, content, prop), _) => {
-          if(cs.length != 4) throw new RuntimeException("wrong number of arguments in boolean " + 
-              s"operation, location in $p, current argument is $cs")
-          val left = get(cs.drop(1).head)
-          val right = get(cs.drop(2).head)
+          val left = get(cs.drop(1).head, env)
+          val right = get(cs.drop(2).head, env)
           //parseBooleanOp(content, left, right)
 //---------------------------------------------------------------------------------------------
           throw new RuntimeException("you entered boolean algebra, which is not supported yet")
@@ -122,7 +120,7 @@ case class Parser (tokens: List[Token], env: Environment) {
           if(cs.length != 3) throw new RuntimeException("wrong number of arguments in defined closure function " + 
               s"application, location in $p, current argument is $cs")
           val funcName = content
-          val body = get(cs.drop(1).head)
+          val body = get(cs.drop(1).head, env)
           //ClosureApplicationExpression(Closure(lookUp(funcName), body)
 //---------------------------------------------------------------------------------------------
           throw new RuntimeException("you entered closure application, which is not supported yet")
@@ -130,25 +128,22 @@ case class Parser (tokens: List[Token], env: Environment) {
         
         //real-time function application expression
         case FragileNode(value, content, prop) => {
-          if(cs.length != 3) throw new RuntimeException("wrong number of arguments in function " + 
-              s"application, location in $p, current argument is $cs")
-          val func = get(cs.head)
-          val body = get(cs.drop(1).head)
+          val func = get(cs.head, env)
+          val body = get(cs.drop(1).head, env)
+          println(body.print())
 //--------------------------------------------------------------------------------------------
 //type check function usage implementation
           import langType._
-          if(cs.head.checkType(parseTimeSymbolTable) != lambda) throw new RuntimeException("non-lambda typed expression" + 
+          if(cs.head.checkType(env) != lambda) throw new RuntimeException("non-lambda typed expression" + 
               "appeared in function application position, location in $p, current argument is $cs")
           ApplicationExpression(func, body)
         }
         
         //if expression
         case AtomicNode(Token(IF, content, prop), _) => {
-          if(cs.length != 5) throw new RuntimeException("wrong number of arguments in if " + 
-              s"expression, location in $p, current argument is $cs")
-          val premises = get(cs.drop(1).head)
-          val trueJump = get(cs.drop(2).head)
-          val falseJump = get(cs.drop(3).head)
+          val premises = get(cs.drop(1).head, env)
+          val trueJump = get(cs.drop(2).head, env)
+          val falseJump = get(cs.drop(3).head, env)
           IfExpression(premises, trueJump, falseJump)
         }
         
@@ -169,7 +164,25 @@ case class Parser (tokens: List[Token], env: Environment) {
         }
       }
     }
-    root.children.map(get(_)).toList
+    root.children.map(get(_, parseTimeSymbolTable)).toList
+  }
+  
+  private def alphaConversion(
+      varName: String, env: TypeEnvironment, body: AST): TypeEnvironment = body match {
+    case FragileNode(v, cs, p) => cs.head match {
+      case AtomicNode(Token(dfaState.ARITHOPERATOR, content, prop), _) => 
+        TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.double)
+      case AtomicNode(Token(dfaState.BOOLOPERATOR, content, prop), _) => 
+        TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.boolean)
+      /*
+    	case AtomicNode(Token(dfaState.IF, content, prop), _) => 
+    	case AtomicNode(Token(dfaState.LAMBDA, content, prop), _) => 
+    	* 
+    	*/
+      case _ => throw new RuntimeException(s"ill-formed expression in lambda $body")
+    }
+    
+    case _ => throw new RuntimeException(s"ill-formed expression in lambda $body")
   }
   
   import langType._

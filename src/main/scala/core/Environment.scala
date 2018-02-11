@@ -12,6 +12,10 @@ case class TypeEnvironment () {
       m = m + (x._1 -> x._2.inferType(env))
     }); this}
   
+  def copyExternal(env: TypeEnvironment) = {env.m.map(x => {
+      this.m = this.m + (x._1 -> x._2)
+    }); this}
+  
   def extendEnvironment(name: String, attribute: langType): TypeEnvironment = {
     if(!m.contains(name)) m = m + (name -> attribute)
     else if (m(name) != attribute) m = m.updated(name, attribute); this
@@ -35,10 +39,15 @@ case class Environment () {
       "INF" -> AtomInt(Int.MaxValue)
   )
   
-  def extendEnvironment(name: String, attribute: Atom) = {
+  def extendEnvironment(name: String, attribute: Atom): Environment = {
     if(table.contains(name)) table = table.updated(name, attribute)
     else table = table + (name -> attribute)
+    this
   }
+  
+  def copyExternal(env: Environment) = {env.table.map(x => {
+      this.table = this.table + (x._1 -> x._2)
+    }); this}
   
   def lookUp(name: String): Either[String, Atom] = {
     if(table.contains(name)) Right(table(name))
