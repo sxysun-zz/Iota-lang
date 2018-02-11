@@ -60,11 +60,17 @@ case class Parser (tokens: List[Token], env: Environment) {
    * @return a cleaned version of abstract syntax tree
    */
   def getSExpression(): List[Expression] = {
-    import dfaState._
     root = getRawAST()
     //build up the overall symbol table for parser type check
     root.checkType(parseTimeSymbolTable)
-    def get(ast: AST, env: TypeEnvironment): Expression = ast match {
+    root.children.map(get(_, parseTimeSymbolTable)).toList
+  }
+  
+  import dfaState._
+  /**
+   * @return a recursive decent parser
+   */
+  private def get(ast: AST, env: TypeEnvironment): Expression = ast match {
       case FragileRoot(c) => get(c.head, env)
       case FragileNode(v, cs, p) => cs.head match{
         
@@ -99,7 +105,6 @@ case class Parser (tokens: List[Token], env: Environment) {
         
         //arithmetic binary operator expression
         case AtomicNode(Token(ARITHOPERATOR, content, prop), _) => {
-           //println(content)
            val opType = ast.checkType(env)
            val left = get(cs.drop(1).head, env)
            val right = get(cs.drop(2).head, env)
@@ -110,29 +115,29 @@ case class Parser (tokens: List[Token], env: Environment) {
         case AtomicNode(Token(BOOLOPERATOR, content, prop), _) => {
           val left = get(cs.drop(1).head, env)
           val right = get(cs.drop(2).head, env)
-          //parseBooleanOp(content, left, right)
-//---------------------------------------------------------------------------------------------
-          throw new RuntimeException("you entered boolean algebra, which is not supported yet")
+          parseBooleanOp(content, left, right)
+        }
+        
+        //an unclosed operation
+        case AtomicNode(Token(COMPOPERATOR, content, prop), _) => {
+          val left = get(cs.drop(1).head, env)
+          val right = get(cs.drop(2).head, env)
+          parseComparatorOp(content, left, right)
         }
         
         //closure: defined function application expression
         case AtomicNode(Token(IDENTIFIER, content, prop), _) => {
           if(cs.length != 3) throw new RuntimeException("wrong number of arguments in defined closure function " + 
               s"application, location in $p, current argument is $cs")
-          val funcName = content
+          val funcName = get(cs.head, env)
           val body = get(cs.drop(1).head, env)
-          //ClosureApplicationExpression(Closure(lookUp(funcName), body)
-//---------------------------------------------------------------------------------------------
-          throw new RuntimeException("you entered closure application, which is not supported yet")
+          ApplicationExpression(funcName, body)
         }
         
         //real-time function application expression
         case FragileNode(value, content, prop) => {
           val func = get(cs.head, env)
           val body = get(cs.drop(1).head, env)
-          println(body.print())
-//--------------------------------------------------------------------------------------------
-//type check function usage implementation
           import langType._
           if(cs.head.checkType(env) != lambda) throw new RuntimeException("non-lambda typed expression" + 
               "appeared in function application position, location in $p, current argument is $cs")
@@ -164,9 +169,10 @@ case class Parser (tokens: List[Token], env: Environment) {
         }
       }
     }
-    root.children.map(get(_, parseTimeSymbolTable)).toList
-  }
   
+  /**
+   * @return the lambda support for operator and atom only now..
+   */
   private def alphaConversion(
       varName: String, env: TypeEnvironment, body: AST): TypeEnvironment = body match {
     case FragileNode(v, cs, p) => cs.head match {
@@ -174,15 +180,41 @@ case class Parser (tokens: List[Token], env: Environment) {
         TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.double)
       case AtomicNode(Token(dfaState.BOOLOPERATOR, content, prop), _) => 
         TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.boolean)
+      case lam@AtomicNode(Token(dfaState.LAMBDA, content, prop), _) => {
+        TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.double)
+      }
       /*
     	case AtomicNode(Token(dfaState.IF, content, prop), _) => 
-    	case AtomicNode(Token(dfaState.LAMBDA, content, prop), _) => 
     	* 
     	*/
       case _ => throw new RuntimeException(s"ill-formed expression in lambda $body")
     }
-    
+    case AtomicNode(v, p) => v match {
+        case Token(dfaState.IDENTIFIER, content, prop) => env.lookUp(content) match {
+          case Right(v_) => TypeEnvironment().copyExternal(env).extendEnvironment(varName, v_)
+          case _ => throw new RuntimeException(s"$content not found in lambda expression at $p")
+        }
+        case Token(s@dfaState, content, prop) => 
+          TypeEnvironment().copyExternal(env).extendEnvironment(varName, correspondingType(s))
+      }
     case _ => throw new RuntimeException(s"ill-formed expression in lambda $body")
+  }
+  
+  private def parseBooleanOp(op: String, left: Expression, right: Expression): Expression = op match {
+    case "≡" => BinaryOperatorExpression(Operations.equiv, left, right)
+    case "∨" => BinaryOperatorExpression(Operations.or, left, right)
+    case "∧" => BinaryOperatorExpression(Operations.and, left, right)
+    case "≠" => BinaryOperatorExpression(Operations.xor, left, right)
+    case _ => throw new RuntimeException(s"no match for operator $op")
+  }
+  
+  import langType._
+  private def parseComparatorOp(op: String, left: Expression, right: Expression): Expression = op match {
+    case "<" => UnclosedOperationExpression(Operations.ddSm, left, right)
+    case ">" => UnclosedOperationExpression(Operations.ddGe, left, right)
+    case "≠" => UnclosedOperationExpression(Operations.ddnumInEquiv, left, right)
+    case "==" => UnclosedOperationExpression(Operations.ddnumEquiv, left, right)
+    case _ => throw new RuntimeException(s"no match for operator $op")
   }
   
   import langType._
@@ -209,6 +241,14 @@ case class Parser (tokens: List[Token], env: Environment) {
     }
     case _ => throw new RuntimeException(s"no match for operator $op")
   }
+  
+  import dfaState._
+  private var correspondingType: Map[dfaState, langType] = Map(
+      dfaState.BOOLEAN -> langType.boolean,
+      dfaState.INT -> langType.int,
+      dfaState.STRING -> langType.string,
+      dfaState.DOUBLE -> langType.double
+  )
   
   /*
    * @return the printed string of parser error

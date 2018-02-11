@@ -2,4 +2,49 @@
 (= x 0)
 ((\lambda (x) (+ x x)) 1.9)
 exit
+(= x #f)
+\lookup
+(= y #t)
+(\equiv y x)
+(= f (\lambda (x) (+ x x)))
+\lookup
+(= x 1)
+(f x)
+(= f (\lambda (x) (+ x x)))
+null
+(= f (\lambda (x) (+ x x)))
+(f 1.0)
+(= f (\lambda (x) (+ x x)))
+(f 0.1)
+(= f (\lambda (x) (+ x x)))
+(f x)
+println(r._1.stripValue + ": " + a.inferType(env0) + " = " + a.stripValue)
+(= f (\lambda (x) (+ x x)))
+(= x 1.0)
+(f x)
+(= f (\lambda (x) (+ x x)))
+(f 1.0)
+(= f (\lambda (x) (+ x x)))
+(f x)
+(= f (\lambda (x) (+ x x)))
+(f 1.0)
+(= f (\lambda (x) (+ x x)))
+(f 1.0)
+(+ res1 2.2)
+\lookup
+\lookup
+(= f (\lambda (x) (+ x x)))
+(f 1.0)
+(+ res1 2.0)
+(+ res1 res2)
+((\lambda (y) (+ y res1)) res2)
+(= x 1.0)
+(\eq x 0.2)
+(= x 1.0)
+(\eq x 0.1)
+(= f (\lambda (x) (+ x x)))
+(f 1.0)
+(= x 1.0)
+(if (> x 0.5) (= x (- x 1)) (= x (+ x 1)))
+(+ res1 0)
 

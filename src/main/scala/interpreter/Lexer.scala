@@ -120,22 +120,20 @@ case class Lexer (rawCode: String){
         case '<' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "<", getProp))}
         case '≥' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "≥", getProp))}
         case '≤' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "≤", getProp))}
-        case '≡' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "≡", getProp))}
-        case '≠' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "¬", getProp))}
+        case '≠' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "≠", getProp))}
+        case '等' => {moveChar;getTail(START, l:+Token(COMPOPERATOR, "==", getProp))}
         
+        case '≡' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "≡", getProp))}
         case '¬' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "¬", getProp))}
         case '∨' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "∨", getProp))}
         case '∧' => {moveChar;getTail(START, l:+Token(BOOLOPERATOR, "∧", getProp))}
-        
-        case '↔' => {moveChar;getTail(START, l:+Token(LOGICOPERATOR, "↔", getProp))}
-        case '⊢' => {moveChar;getTail(START, l:+Token(LOGICOPERATOR, "⊢", getProp))}
         
         case 'λ' => {moveChar;getTail(START, l:+Token(LAMBDA, "λ", getProp))}
         
         case '"' => {getTail(START, l:+Token(STRING, getStringLiteral, getProp))}
         
-        case '真' => {moveChar;getTail(START, l:+Token(BOOLEAN, "真", getProp))}
-        case '假' => {moveChar;getTail(START, l:+Token(BOOLEAN, "假", getProp))}
+        case '真' => {moveChar;getTail(START, l:+Token(BOOLEAN, "true", getProp))}
+        case '假' => {moveChar;getTail(START, l:+Token(BOOLEAN, "false", getProp))}
         
         case '■' => {getTail(END, l:+Token(END, "■", getProp))}
         case _ => {
@@ -147,7 +145,7 @@ case class Lexer (rawCode: String){
             moveChar;getTail(START, l)
           }
           else if(nowChar == 'i') {
-            if(code.charAt(currentPos + 1) == 'f' && code.charAt(currentPos + 1).isSpaceChar)
+            if(code.charAt(currentPos + 1) == 'f' && code.charAt(currentPos + 2).isSpaceChar)
              {moveChar;moveChar;getTail(START, l:+Token(IF, "if", getProp))}
             else {currentPos = currentPos - 1
               getTail(START, l:+Token(IDENTIFIER, getIdentifier, getProp))}

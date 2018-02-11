@@ -2,7 +2,7 @@ package main.scala.core
 
 /**
  * `IMPORTANT`
- * there are six basic expressions in alayi-lang
+ * there are six basic expressions in iota-lang
  * 1. define expression like (= x 1)
  * (= iden exp)
  * 2. lambda expression like (λ (x) (* x x))
@@ -60,8 +60,9 @@ sealed trait Expression {
         if(lInferred == double || rInferred == double) double
         else lInferred
       }
+      case UnclosedOperationExpression(_, _ ,_) => boolean
       //----------------this rule of inference is incorrect------------------------------
-      case ApplicationExpression(f, b) => infer(b)
+      case ApplicationExpression(f, b) => infer(f)
       case IfExpression(ar, f, s) => infer(f)
       //----------------identifier support------------------------------
       case _ => throw new RuntimeException("failed to infer type of " + exp.print())
@@ -76,9 +77,9 @@ case class DefineExpression (varName: String, value: Expression) extends Express
 
 case class AtomExpression (value: Atom) extends Expression
 
-case class BinaryOperatorExpression [A <% Atom](operator: (A, A) => A, left: Expression, right: Expression) extends Expression
+case class BinaryOperatorExpression [A <% Atom](operator: Function2[A, A, A], left: Expression, right: Expression) extends Expression
 
-case class ClosureApplicationExpression (closure: Closure, body: Expression) extends Expression
+case class UnclosedOperationExpression (operator: Function2[AtomDouble, AtomDouble, AtomBoolean], left: Expression, right: Expression) extends Expression
 
 case class ApplicationExpression (functionName: Expression, body: Expression) extends Expression
 

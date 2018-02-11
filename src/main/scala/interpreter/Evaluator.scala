@@ -24,22 +24,35 @@ case class Evaluator (prog: List[Expression]) {
     case BinaryOperatorExpression(op, l, r) => {
       val lEvaled = eval(l, env)
       val rEvaled = eval(r, env)
-      //println(l)
-      //println(lEvaled.inferType(env))
-      //println(exp.inferType(env))
-      
-      // handle the arithmetic operator case
       if(exp.inferType(env) == double) op(lEvaled.arithSafeConversion, 
           rEvaled.arithSafeConversion).asInstanceOf[Atom]
       else op(lEvaled, rEvaled).asInstanceOf[Atom]
     }
-    case DefineExpression(n, v) => {
-      val definedExpr = eval(v, env)
-      env.extendEnvironment(n, definedExpr)
-      AtomIdentifier(n)
+    case UnclosedOperationExpression(op, l, r) => {
+      val lEvaled = eval(l, env)
+      val rEvaled = eval(r, env)
+      if(lEvaled.inferType(env) == double && rEvaled.inferType(env) == double) 
+        op(lEvaled.asInstanceOf[AtomDouble], 
+          rEvaled.asInstanceOf[AtomDouble]).asInstanceOf[Atom]
+      else throw new RuntimeException(s"ill formed expression in $l and $r")
+    }
+    case DefineExpression(n, v) => v match {
+      case lam@LambdaExpression(v_, b_) => {
+        env.functionTable = env.functionTable.updated(n, lam)
+        AtomIdentifier(n)
+      }
+      case _ => {
+        val definedExpr = eval(v, env)
+        env.extendEnvironment(n, definedExpr)
+        AtomIdentifier(n)
+      }
     }
     case ApplicationExpression(f, b) => {
       f match {
+        case AtomExpression(AtomIdentifier(funcN)) => {
+          val func = env.functionTable(funcN)
+          eval(ApplicationExpression(func, b), env)
+        }
         case LambdaExpression(v_, b_) => {
           val applicatee = eval(b, env)
           val newEnv = Environment().copyExternal(env)extendEnvironment(v_, applicatee)
@@ -48,11 +61,21 @@ case class Evaluator (prog: List[Expression]) {
         case _ => throw new RuntimeException(s"not function application in $f")
       }
     }
+    case IfExpression(p, t, f) => {
+      val prem = eval(p, env)
+      prem match {
+        case AtomBoolean(premises) => {
+          if(premises) eval(t, env)
+          else eval(f, env)
+        }
+        case _ => throw new RuntimeException(s"the premises condition is not a boolean in if statement: $p")
+      }
+    }
     case exp@LambdaExpression(v, b) => {
       eval(b, env)
     }
-    case _ => {
-      throw new RuntimeException("no match for valid expression in evaluator")
+    case exp@_ => {
+      throw new RuntimeException(s"no match for valid expression in evaluator: $exp")
     }
   }
 }

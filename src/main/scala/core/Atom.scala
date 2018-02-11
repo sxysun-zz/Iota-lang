@@ -13,7 +13,10 @@ sealed trait Atom {
     case AtomIdentifier(x) => {
       env.lookUp(x) match {
         case Right(s) => s.inferType(env)
-        case Left(s) => throw new RuntimeException(s)
+        case Left(s) => {
+          if(!env.functionTable.contains(x)) throw new RuntimeException(s)
+          else lambda
+        }
       }
     }
     case _ => throw new RuntimeException(s"unable to infer type for atom $this")
@@ -71,7 +74,7 @@ case class AtomString (value: String) extends Atom {
  * need to think of its values
  */
 case class AtomIdentifier(name: String) extends Atom {
-  override def toString() = this.name
+  override def toString() = "identifier: " + this.name
 }
 
 /*

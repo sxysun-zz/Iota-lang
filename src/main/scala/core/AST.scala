@@ -61,17 +61,32 @@ sealed trait AST {
            val left = typeCheck(cs.drop(1).head, env)
            val right = typeCheck(cs.drop(2).head, env)
            if((left != int && left != double) || (right != int && right != double)) {
-             println(s"$left  $right")
              throw new RuntimeException(s"ill typed expression, expected arithmetic ones, at $prop")
            }
            if(left == double || right == double) double
            else int
         }
         
+        case AtomicNode(Token(COMPOPERATOR, content, prop), _) => {
+          if(cs.length != 4 ) throw new RuntimeException("wrong number of arguments in comparator " + 
+              s"operation, location in $p, current argument is $cs")
+          val left = typeCheck(cs.drop(1).head, env)
+          val right = typeCheck(cs.drop(2).head, env)
+           if(left != int && left != double && right != int && right != double) {
+             throw new RuntimeException(s"ill typed expression, expected numbers, at $prop")
+           }
+          boolean
+        }
+        
         //boolean binary operator expression
         case AtomicNode(Token(BOOLOPERATOR, content, prop), _) => {
           if(cs.length != 4) throw new RuntimeException("wrong number of arguments in boolean " + 
               s"operation, location in $p, current argument is $cs")
+          val left = typeCheck(cs.drop(1).head, env)
+          val right = typeCheck(cs.drop(2).head, env)
+          if(left != boolean || right != boolean) {
+             throw new RuntimeException(s"ill typed expression, expected numbers, at $prop")
+           }
           boolean
         }
         
@@ -79,13 +94,7 @@ sealed trait AST {
         case AtomicNode(Token(IDENTIFIER, content, prop), _) => {
           if(cs.length != 3) throw new RuntimeException("wrong number of arguments in defined closure function " + 
               s"application, location in $p, current argument is $cs")
-          val funcName = content
-//--------not implemented the function procedure, the function should have return value in environment
-          env.lookUp(funcName) match {
-            case Right(x) => x
-            case Left(x) => throw new RuntimeException(x)
-          }
-          //this will always return lambda
+          lambda
         }
         
         //real-time function application expression
@@ -93,8 +102,6 @@ sealed trait AST {
           if(cs.length != 3) throw new RuntimeException("wrong number of arguments in function " + 
               s"application, location in $p, current argument is $cs")
           val func = typeCheck(cs.head, env)
-          //val body = typeCheck(cs.drop(1).head, env.extendEnvironment(name, attribute))
-//---------------not implemented-------------------
           //this will always return lambda
           func
         }
@@ -108,7 +115,6 @@ sealed trait AST {
           val falseJump = typeCheck(cs.drop(3).head, env)
           if(premises != boolean) throw new RuntimeException("ill type in premises of if expression")
           if(trueJump != falseJump) throw new RuntimeException("indeterministic type if expression, no lub()")
-//---------------need better implementation-------------------
           trueJump
         }
         
@@ -131,9 +137,13 @@ sealed trait AST {
     }
   }
 }
-case class AtomicNode(value: Token, parent: AST) extends AST
+case class AtomicNode(value: Token, parent: AST) extends AST {
+  override def toString = s"atomic node with value $value"
+}
 
-case class FragileNode (value: Token, child: ListBuffer[AST], parent: FragileNode) extends AST
+case class FragileNode (value: Token, child: ListBuffer[AST], parent: FragileNode) extends AST {
+  override def toString = s"atomic node with value $value and children $child"
+}
 
 case class FragileRoot (children: ListBuffer[FragileNode]) extends AST
 

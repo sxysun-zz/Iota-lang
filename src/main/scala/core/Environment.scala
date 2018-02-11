@@ -1,6 +1,8 @@
 package main.scala.core
 
-case class TypeEnvironment () {
+sealed trait SymbolTable {}
+
+case class TypeEnvironment () extends SymbolTable{
   import langType._
   private var m: Map[String, langType] = Map(
       "#f" -> boolean,
@@ -32,12 +34,14 @@ case class TypeEnvironment () {
 /**
  * ``IMPORTANT`` the `Scala` map behaves like a stack
  */
-case class Environment () {
+case class Environment () extends SymbolTable {
   var table: Map[String, Atom] = Map(
       "#f" -> AtomBoolean(false),
       "#t" -> AtomBoolean(true),
       "INF" -> AtomInt(Int.MaxValue)
   )
+  
+  var functionTable: Map[String, LambdaExpression] = Map()
   
   def extendEnvironment(name: String, attribute: Atom): Environment = {
     if(table.contains(name)) table = table.updated(name, attribute)
@@ -65,7 +69,7 @@ case class Environment () {
   def replPrint = {
     println("symbol table: ")
     println("-----")
-    this.table.map(x => println(x._1+" -> "+x._2))
+    this.table.map(x => println(x._1+": "+x._2.inferType(this)+" -> "+x._2))
     println("-----")
   }
 }

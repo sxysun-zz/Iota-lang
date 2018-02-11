@@ -37,7 +37,10 @@ object REPL {
       val looked = env0.lookUp(r._1.stripValue.toString())
       looked match {
         case Right(a) => println(r._1.stripValue + ": " + a.inferType(env0) + " = " + a.stripValue)
-        case Left(_) => println("define expression failed")
+        case Left(_) => {
+          if(env0.functionTable.contains(r._1.stripValue.toString())) println(r._1.stripValue + ": lambda expression")
+          else println("define expression failed")
+        }
       }
     }
     else {
@@ -49,6 +52,7 @@ object REPL {
   
   private def evaluateSingle(cmd: String) = {
     val repl = Parser(Lexer(Macro(cmd).initializeRaw()).getTokens(), env0).getSExpression()
-    (Evaluator(repl).eval(repl.head, env0), repl.head.inferType(env0))
+    val finalValue = Evaluator(repl).eval(repl.head, env0)
+    (finalValue, finalValue.inferType(env0))
   }
 }
