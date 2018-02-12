@@ -30,7 +30,7 @@ and useful lambda calculus rules like beta reduction and alpha conversion to cre
 ```
 * higher order function and currying
 2. Types
-* auto type inference (Martin Lof method)
+* auto type inference
 * lexical scope
 * environment model (purely functional datastructure for symbol tables)
 3. Debugging
