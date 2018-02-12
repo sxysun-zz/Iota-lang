@@ -73,3 +73,14 @@ case class Environment () extends SymbolTable {
     println("-----")
   }
 }
+
+object typeReflex {
+  import dfaState._
+  import langType._
+  val correspondingType: Map[dfaState, langType] = Map(
+      dfaState.BOOLEAN -> langType.boolean,
+      dfaState.INT -> langType.int,
+      dfaState.STRING -> langType.string,
+      dfaState.DOUBLE -> langType.double
+  )
+}

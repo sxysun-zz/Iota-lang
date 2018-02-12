@@ -55,10 +55,18 @@ case class Evaluator (prog: List[Expression]) {
         }
         case LambdaExpression(v_, b_) => {
           val applicatee = eval(b, env)
-          val newEnv = Environment().copyExternal(env)extendEnvironment(v_, applicatee)
+// entrance of higher order function -------------------------------------------------
+          val newEnv = Environment().copyExternal(env).extendEnvironment(v_, applicatee)
           eval(b_, newEnv)
         }
-        case _ => throw new RuntimeException(s"not function application in $f")
+        case exp@_ => {
+          eval(exp, env) match {
+            case exp2@AtomLambda(v_, b_) => {
+              eval(ApplicationExpression(exp2.toLambdaExpression, b), env)
+            }
+            case _ => throw new RuntimeException(s"not function application in $f")
+          }
+        }
       }
     }
     case IfExpression(p, t, f) => {
@@ -72,7 +80,7 @@ case class Evaluator (prog: List[Expression]) {
       }
     }
     case exp@LambdaExpression(v, b) => {
-      eval(b, env)
+      AtomLambda(v, b)
     }
     case exp@_ => {
       throw new RuntimeException(s"no match for valid expression in evaluator: $exp")

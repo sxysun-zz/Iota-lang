@@ -31,6 +31,7 @@ sealed trait Atom {
     case AtomBoolean(b) => b
     case AtomString(s) => s
     case AtomIdentifier(n) => n
+    case AtomLambda(v, b) => s"(lambda ($v) ($b))"
   }
   
   def arithSafeConversion = this match {
@@ -47,34 +48,36 @@ import langType._
  */
 case class AtomBoolean (value: Boolean) extends Atom {
   val typeInfo = boolean
-  override def toString() = this.value.toString()
+  override def toString = this.value.toString()
 }
 
 case class AtomInt (value: Int) extends Atom {
   val typeInfo = int
-  implicit def toAtomDouble(): AtomDouble = AtomDouble(this.value.toDouble)
-  implicit def toAtomString(): AtomString = AtomString(this.value.toString)
-  override def toString() = this.value.toString()
+  implicit def toAtomDouble: AtomDouble = AtomDouble(this.value.toDouble)
+  implicit def toAtomString: AtomString = AtomString(this.value.toString)
+  override def toString = this.value.toString()
 }
 
 case class AtomDouble (value: Double) extends Atom {
   val typeInfo = double
-  implicit def toAtomString(): AtomString = AtomString(this.value.toString)
-  override def toString() = this.value.toString()
+  implicit def toAtomString: AtomString = AtomString(this.value.toString)
+  override def toString = this.value.toString()
 }
 
 case class AtomString (value: String) extends Atom {
   val typeInfo = string
-  implicit def toAtomInt(): AtomInt = AtomInt(this.value.toInt)
-  implicit def toAtomDouble(): AtomDouble = AtomDouble(this.value.toDouble)
-  override def toString() = this.value.toString()
+  implicit def toAtomInt: AtomInt = AtomInt(this.value.toInt)
+  implicit def toAtomDouble: AtomDouble = AtomDouble(this.value.toDouble)
+  override def toString = this.value.toString()
 }
 
-/**
- * need to think of its values
- */
 case class AtomIdentifier(name: String) extends Atom {
-  override def toString() = "identifier: " + this.name
+  override def toString = "identifier: " + this.name
+}
+
+case class AtomLambda(varName: String, body: Expression) extends Atom {
+  override def toString = s"(lambda ($varName) ($body))"
+  def toLambdaExpression = LambdaExpression(varName, body)
 }
 
 /*

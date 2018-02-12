@@ -14,5 +14,5 @@ object dfaState extends Enumeration {
 
 import dfaState._
 case class Token (kind: dfaState, value: String, property: MetaData){
-  override def toString() = s"token is of kind: $kind, value is $value"
+  override def toString() = s"$value: $kind"
 }

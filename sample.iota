@@ -7,34 +7,30 @@
 ((\lambda (r) (+ r y)) x)				//6th
 ((\lambda (x) 1) 2)
 */
-//((\lambda (x) (\lambda (z) (+ x z))) 2.0) 3.0)
 
-(= f (\lambda (x) (+ x x)))
+((\lambda (x)
+  ((\lambda (z)
+    (+ z x)) 2.0)) 3.0)						// => 5
 
-(= x 1.0)
-//(if (> x 0.5) (= x (- x 1.0)) (= x 3.0))
-//(+ x 1)
-(f x)
+/*
+((\lambda (x)
+  ((\lambda (z) (+ z z)) 2)) 3)			// => 4
+*/
 
 /*
 (= x #f)
 (= y #t)
 (\equiv x y)
 (\or x y)
-
-(= a 1.2)
-(= b 2.0)
-(\eq a b)
-(> a 0.0)
 */
 
-/* \ge \equiv
-(defun max
-      (lambda (m)
-            (lambda (n)
-                  (if (> n m)
-                        n
-                        m))))
-(max (+ 1 1) (* 2 3))
+/*
+(= fac
+   (\lambda (x)
+     (if (\eq (- x 1) 0.0)
+         1
+         (* x (fac (- x 1))))))
+(= x 9.0)
+(fac x)
 */
 //(≥ x 1)

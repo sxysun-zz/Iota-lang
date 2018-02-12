@@ -20,7 +20,7 @@ sealed trait Expression {
   /**
    * fail to build if change this function to override 
    */
-  def print(): String = {
+  override def toString(): String = {
     def toStringRec(exp: Expression): String = exp match {
       case LambdaExpression(v, b) => s"(lambda ($v) >( " + toStringRec(b) + " ) )"
       case DefineExpression(v, v_) => s"(define $v >( " + toStringRec(v_) + " ) )"
@@ -52,6 +52,7 @@ sealed trait Expression {
         case AtomInt(_) => int
         case AtomString(_) => string
         case t@AtomIdentifier(_) => t.inferType(env)
+        case AtomLambda(v, b) => lambda
       }
       //Closure property of Operations --------- subject to change 
       case BinaryOperatorExpression(op, l, r) => {
@@ -65,7 +66,7 @@ sealed trait Expression {
       case ApplicationExpression(f, b) => infer(f)
       case IfExpression(ar, f, s) => infer(f)
       //----------------identifier support------------------------------
-      case _ => throw new RuntimeException("failed to infer type of " + exp.print())
+      case _ => throw new RuntimeException("failed to infer type of " + exp)
     }
     infer(this)
   }

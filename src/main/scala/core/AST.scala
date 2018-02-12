@@ -119,30 +119,26 @@ sealed trait AST {
         }
         
         //error expression
-        case _ => {
-          throw new RuntimeException("ill typed expression in parser")
+        case exp@_ => {
+          throw new RuntimeException(s"ill typed expression in parser : $exp")
         }
     }
     case AtomicNode(v, p) => v match {
         case Token(IDENTIFIER, content, prop) => env.lookUp(content) match {
           case Right(x) => x
-          case Left(x) => throw new RuntimeException(x)
+          case Left(x) => throw new RuntimeException(x + s"at $p")
         }
-        case Token(INT, content, prop) => int
-        case Token(DOUBLE, content, prop) => double
-        case Token(STRING, content, prop) => string
-        case Token(BOOLEAN, content, prop) => boolean
-        case Token(k, content, prop) => {throw new RuntimeException("ill type " +
-            s"in syntax tree at $prop, token is $content, token type is $k")}
+        case Token(s@dfaState, content, prop) => 
+          typeReflex.correspondingType(s)
     }
   }
 }
 case class AtomicNode(value: Token, parent: AST) extends AST {
-  override def toString = s"atomic node with value $value"
+  override def toString = s"$value: AtomicNode"
 }
 
 case class FragileNode (value: Token, child: ListBuffer[AST], parent: FragileNode) extends AST {
-  override def toString = s"atomic node with value $value and children $child"
+  override def toString = s"$value: FragileNode"
 }
 
 case class FragileRoot (children: ListBuffer[FragileNode]) extends AST

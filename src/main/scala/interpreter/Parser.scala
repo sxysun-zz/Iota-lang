@@ -87,7 +87,7 @@ case class Parser (tokens: List[Token], env: Environment) {
             }
             case _ => throw new RuntimeException(s"wrong lambda expression at $prop")
           }
-          val newEnv = alphaConversion(varName, env, cs.drop(2).head)
+          val newEnv = establishVarNameType(varName, env, cs.drop(2).head)
           LambdaExpression(varName, get(cs.drop(2).head, newEnv))
         }
         
@@ -173,20 +173,22 @@ case class Parser (tokens: List[Token], env: Environment) {
   /**
    * @return the lambda support for operator and atom only now..
    */
-  private def alphaConversion(
+  private def establishVarNameType(
       varName: String, env: TypeEnvironment, body: AST): TypeEnvironment = body match {
     case FragileNode(v, cs, p) => cs.head match {
       case AtomicNode(Token(dfaState.ARITHOPERATOR, content, prop), _) => 
         TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.double)
       case AtomicNode(Token(dfaState.BOOLOPERATOR, content, prop), _) => 
         TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.boolean)
-      case lam@AtomicNode(Token(dfaState.LAMBDA, content, prop), _) => {
-        TypeEnvironment().copyExternal(env).extendEnvironment(varName, langType.double)
+      case lam@AtomicNode(Token(dfaState.LAMBDA, content, prop), _) => cs.drop(1).head match {
+// support for currying ----------------------------------------------
+        case FragileNode(_, ListBuffer(AtomicNode(Token(dfaState.IDENTIFIER, c_, p_), _), _*), _) => 
+          establishVarNameType(c_, env, cs.drop(2).head)
+        case _ => throw new RuntimeException("no value was found")
       }
-      /*
+      case unknown@FragileNode(v_, cs_, p_) => establishVarNameType(varName, env, unknown)
     	case AtomicNode(Token(dfaState.IF, content, prop), _) => 
-    	* 
-    	*/
+    	  TypeEnvironment().copyExternal(env).extendEnvironment(varName, cs.drop(2).head.checkType(env))
       case _ => throw new RuntimeException(s"ill-formed expression in lambda $body")
     }
     case AtomicNode(v, p) => v match {
@@ -195,7 +197,7 @@ case class Parser (tokens: List[Token], env: Environment) {
           case _ => throw new RuntimeException(s"$content not found in lambda expression at $p")
         }
         case Token(s@dfaState, content, prop) => 
-          TypeEnvironment().copyExternal(env).extendEnvironment(varName, correspondingType(s))
+          TypeEnvironment().copyExternal(env).extendEnvironment(varName, typeReflex.correspondingType(s))
       }
     case _ => throw new RuntimeException(s"ill-formed expression in lambda $body")
   }
@@ -241,14 +243,6 @@ case class Parser (tokens: List[Token], env: Environment) {
     }
     case _ => throw new RuntimeException(s"no match for operator $op")
   }
-  
-  import dfaState._
-  private var correspondingType: Map[dfaState, langType] = Map(
-      dfaState.BOOLEAN -> langType.boolean,
-      dfaState.INT -> langType.int,
-      dfaState.STRING -> langType.string,
-      dfaState.DOUBLE -> langType.double
-  )
   
   /*
    * @return the printed string of parser error
