@@ -8,7 +8,7 @@ Lisp dialet written with Scala, light weight, equipped with latex-ish grammar fo
          1
          (* x (fac (- x 1))))))
 (= x 9)
-(fac x)
+(fac x) //  => 362880
 ```
 
 ### features:
@@ -38,6 +38,7 @@ and useful lambda calculus rules like beta reduction and alpha conversion to cre
 * useful and accurate exception information
 4. Interactive REPL
 * evaluate the expression you want at anytime with friendly environment maintaince
+![](./test.gif)
 ``` racket
 (= x 1.0)
 (= f (\lambda (x) (+ x x)))
