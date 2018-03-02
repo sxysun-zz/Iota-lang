@@ -212,8 +212,10 @@ case class Parser (tokens: List[Token], env: Environment) {
   
   import langType._
   private def parseComparatorOp(op: String, left: Expression, right: Expression): Expression = op match {
+    case "≥" => UnclosedOperationExpression(Operations.ddGe, left, right)
+    case "≤" => UnclosedOperationExpression(Operations.ddLe, left, right)
     case "<" => UnclosedOperationExpression(Operations.ddSm, left, right)
-    case ">" => UnclosedOperationExpression(Operations.ddGe, left, right)
+    case ">" => UnclosedOperationExpression(Operations.ddGr, left, right)
     case "≠" => UnclosedOperationExpression(Operations.ddnumInEquiv, left, right)
     case "==" => UnclosedOperationExpression(Operations.ddnumEquiv, left, right)
     case _ => throw new RuntimeException(s"no match for operator $op")

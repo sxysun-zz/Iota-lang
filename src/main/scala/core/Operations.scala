@@ -4,7 +4,8 @@ object Operations {
   
   private val epsilon = 0.0001
   
-  def ddplus = (l: AtomDouble, r: AtomDouble) => AtomDouble(l.value + r.value)
+  def ddplus: Function2[AtomDouble, AtomDouble, AtomDouble] = 
+    (l: AtomDouble, r: AtomDouble) => AtomDouble(l.value + r.value)
   def ddminus = (l: AtomDouble, r: AtomDouble) => AtomDouble(l.value - r.value)
   def dddivide = (l: AtomDouble, r: AtomDouble) => AtomDouble(l.value / r.value)
   def ddmulti = (l: AtomDouble, r: AtomDouble) => AtomDouble(l.value * r.value)
@@ -18,8 +19,10 @@ object Operations {
   
   def ddnumEquiv = (l: AtomDouble, r: AtomDouble) => AtomBoolean(Math.abs(l.value - r.value) < epsilon)
   def ddnumInEquiv = (l: AtomDouble, r: AtomDouble) => AtomBoolean(Math.abs(l.value - r.value) > epsilon)
-  def ddGe = (l: AtomDouble, r: AtomDouble) => AtomBoolean(l.value > r.value)
+  def ddGr = (l: AtomDouble, r: AtomDouble) => AtomBoolean(l.value > r.value)
   def ddSm = (l: AtomDouble, r: AtomDouble) => AtomBoolean(l.value < r.value)
+  def ddLe = (l: AtomDouble, r: AtomDouble) => AtomBoolean(l.value <= r.value)
+  def ddGe = (l: AtomDouble, r: AtomDouble) => AtomBoolean(l.value >= r.value)
   
   def or = (l: AtomBoolean, r: AtomBoolean) => AtomBoolean(l.value || r.value)
   def and = (l: AtomBoolean, r: AtomBoolean) => AtomBoolean(l.value && r.value)
