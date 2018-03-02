@@ -72,7 +72,7 @@ case class AtomString (value: String) extends Atom {
 }
 
 case class AtomIdentifier(name: String) extends Atom {
-  override def toString = "identifier: " + this.name
+  override def toString = "iden: " + this.name
 }
 
 case class AtomLambda(varName: String, body: Expression) extends Atom {

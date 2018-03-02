@@ -5,7 +5,8 @@ import main.scala.core._
 case class Evaluator (prog: List[Expression]) {
   
   def mainEval(env: Environment): List[Any] = {
-    prog.map(eval(_, env).stripValue)
+    val ret = prog.map(eval(_, env).stripValue)
+    ret
   }
   
   import dfaState._
@@ -48,6 +49,8 @@ case class Evaluator (prog: List[Expression]) {
       }
     }
     case ApplicationExpression(f, b) => {
+      //println(exp)
+      //println(env.functionTable.size)
       f match {
         case AtomExpression(AtomIdentifier(funcN)) => {
           val func = env.functionTable(funcN)

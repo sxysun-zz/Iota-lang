@@ -24,7 +24,8 @@ case class Lexer (rawCode: String){
     @annotation.tailrec
     def getTail(n: String): String = {
       moveChar
-      if(!nowChar.isSpaceChar) {getTail(n++nowChar.toString())}
+      if(!nowChar.isSpaceChar && !inList(nowChar, endLineChar)) 
+        {getTail(n++nowChar.toString())}
       else n
     }
     getTail("")

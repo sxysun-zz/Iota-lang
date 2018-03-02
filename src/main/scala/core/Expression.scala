@@ -22,14 +22,15 @@ sealed trait Expression {
    */
   override def toString(): String = {
     def toStringRec(exp: Expression): String = exp match {
-      case LambdaExpression(v, b) => s"(lambda ($v) >( " + toStringRec(b) + " ) )"
-      case DefineExpression(v, v_) => s"(define $v >( " + toStringRec(v_) + " ) )"
+      case LambdaExpression(v, b) => s"(lambda ($v) ( " + toStringRec(b) + " ) )"
+      case DefineExpression(v, v_) => s"(define $v ( " + toStringRec(v_) + " ) )"
       case AtomExpression(v) => v.toString()
-      case BinaryOperatorExpression(op, l, r) => s"( op >( " + toStringRec(l) + " ) >( " + toStringRec(r) + " ) )"
-      case ApplicationExpression(f, b) => "( >( " + toStringRec(f) + " ) >( " + toStringRec(b) + " ) )"
-      case IfExpression(ar, f, s) => "( if >( " + toStringRec(ar) + " ) >( " + toStringRec(f) + 
-        " ) >( " + toStringRec(s) + " ) "
-      case _ => "undefined toString method"
+      case BinaryOperatorExpression(op, l, r) => s"( op ( " + toStringRec(l) + " ) ( " + toStringRec(r) + " ) )"
+      case ApplicationExpression(f, b) => "( ( " + toStringRec(f) + " ) ( " + toStringRec(b) + " ) )"
+      case IfExpression(ar, f, s) => "( if ( " + toStringRec(ar) + " ) ( " + toStringRec(f) + 
+        " ) ( " + toStringRec(s) + " ) "
+      case UnclosedOperationExpression(_,l,r) => "( uncOp ( "+l.toString()+" ) ( "+r.toString()+" ) )"
+      case _ => "Undefined toString Method"
     }
     toStringRec(this)
   }

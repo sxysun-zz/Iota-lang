@@ -60,7 +60,9 @@ sealed trait AST {
               s"operation, location in $p, current argument is $cs")
            val left = typeCheck(cs.drop(1).head, env)
            val right = typeCheck(cs.drop(2).head, env)
-           if((left != int && left != double) || (right != int && right != double)) {
+           if((left != int && left != double && left != lambda) || (right != int && right != double && right != lambda)) {
+             println(left)
+             println(right)
              throw new RuntimeException(s"ill typed expression, expected arithmetic ones, at $prop")
            }
            if(left == double || right == double) double

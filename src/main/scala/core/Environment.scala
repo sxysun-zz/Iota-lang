@@ -51,6 +51,8 @@ case class Environment () extends SymbolTable {
   
   def copyExternal(env: Environment) = {env.table.map(x => {
       this.table = this.table + (x._1 -> x._2)
+    }); env.functionTable.map(x => {
+      this.functionTable = this.functionTable + (x._1 -> x._2)
     }); this}
   
   def lookUp(name: String): Either[String, Atom] = {
