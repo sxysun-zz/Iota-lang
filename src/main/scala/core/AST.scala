@@ -128,7 +128,7 @@ sealed trait AST {
     case AtomicNode(v, p) => v match {
         case Token(IDENTIFIER, content, prop) => env.lookUp(content) match {
           case Right(x) => x
-          case Left(x) => throw new RuntimeException(x + s"at $p")
+          case Left(x) => throw new RuntimeException(x + s"at $p" + prop)
         }
         case Token(s@dfaState, content, prop) => 
           typeReflex.correspondingType(s)

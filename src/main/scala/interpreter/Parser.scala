@@ -32,10 +32,7 @@ case class Parser (tokens: List[Token], env: Environment) {
         currentNode.child.append(newNode)
         if(currentNode.parent == null) {
           l.drop(1).head match {
-            case t@Token(END, _,_) => {
-              //println("get raw abstract syntax tree completed")
-              Unit
-            }
+            case t@Token(END, _,_) => Unit
             case _ => {
               root.children.append(FragileNode(l.drop(1).head, ListBuffer(), null))
               currentNode = root.children.last
